@@ -1,0 +1,117 @@
+# Gestor de Viajes - GitIgnore
+
+# ====================================
+# Configuración sensible
+# ====================================
+config/database.php
+.env
+*.env.local
+
+# ====================================
+# Imágenes subidas por usuarios
+# ====================================
+images/*/
+!images/.gitkeep
+
+# ====================================
+# Backups de base de datos
+# ====================================
+*.sql.gz
+backup_*.sql
+database/backups/
+
+# ====================================
+# Archivos del sistema operativo
+# ====================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ====================================
+# IDEs y Editores
+# ====================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ====================================
+# PHP
+# ====================================
+composer.phar
+/vendor/
+.phpunit.result.cache
+phpunit.xml
+
+# ====================================
+# Logs
+# ====================================
+*.log
+logs/
+error_log
+access_log
+
+# ====================================
+# Temporales
+# ====================================
+*.tmp
+*.temp
+tmp/
+temp/
+cache/
+
+# ====================================
+# Node (si se usa en el futuro)
+# ====================================
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# ====================================
+# Archivos de sistema web
+# ====================================
+.htpasswd
+.htaccess.backup
+
+# ====================================
+# Archivos de prueba
+# ====================================
+test_*.php
+debug_*.php
+phpinfo.php
+
+# ====================================
+# Certificados SSL (nunca commitear)
+# ====================================
+*.pem
+*.key
+*.crt
+*.csr
+
+# ====================================
+# Archivos comprimidos grandes
+# ====================================
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# ====================================
+# Mantener estas carpetas vacías
+# ====================================
+!images/.gitkeep
+!database/migrations/.gitkeep
