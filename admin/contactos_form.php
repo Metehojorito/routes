@@ -243,13 +243,15 @@ if (isset($_GET['delete'])) {
                         </div>
                         <div class="flex items-center gap-2">
                             <a href="contactos_form.php?viaje_id=<?php echo $viaje_id; ?>&id=<?php echo $contacto['id']; ?>" 
-                               class="text-indigo-600 hover:text-indigo-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-indigo-50 transition">
-                                Editar
+                               class="text-indigo-600 hover:text-indigo-900 p-2 rounded hover:bg-indigo-50 transition"
+                               title="Editar">
+                                <span class="material-symbols-outlined">edit</span>
                             </a>
                             <a href="?viaje_id=<?php echo $viaje_id; ?>&delete=<?php echo $contacto['id']; ?>" 
                                onclick="return confirm('¿Eliminar este contacto?')"
-                               class="text-red-600 hover:text-red-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-red-50 transition">
-                                Eliminar
+                               class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"
+                               title="Eliminar">
+                                <span class="material-symbols-outlined">delete</span>
                             </a>
                         </div>
                     </div>
@@ -285,143 +287,20 @@ if (isset($_GET['delete'])) {
         </div>
     </div>
 
+    <!-- Scripts Externos -->
+    <script src="js/icons-library.js"></script>
+    <script src="js/icon-picker.js"></script>
+    
+    <!-- Script Específico de la Página -->
     <script>
-        // Lista completa de iconos Material Symbols organizados por categoría
-        const icons = {
-            emergencia: ['emergency', 'e911_emergency', 'emergency_home', 'emergency_share', 'sos', 'medical_services', 'healing', 'vaccines', 'medication', 'health_and_safety'],
-            policia: ['local_police', 'security', 'shield', 'shield_person', 'verified_user', 'gavel', 'policy'],
-            hospital: ['local_hospital', 'emergency_home', 'medical_services', 'health_and_safety', 'favorite', 'monitor_heart', 'ecg_heart'],
-            bomberos: ['local_fire_department', 'fire_truck', 'fire_extinguisher', 'fireplace'],
-            telefono: ['phone', 'call', 'phone_in_talk', 'phone_enabled', 'contact_phone', 'phonelink_ring', 'ring_volume', 'call_end', 'phone_callback', 'phone_forwarded', 'phone_missed', 'phone_paused'],
-            soporte: ['support_agent', 'headset_mic', 'contact_support', 'help', 'help_center', 'live_help'],
-            lugares: ['home', 'hotel', 'apartment', 'cottage', 'villa', 'house', 'cabin', 'location_city', 'business', 'storefront', 'store', 'factory', 'warehouse', 'domain'],
-            institucional: ['account_balance', 'museum', 'church', 'synagogue', 'mosque', 'temple_buddhist', 'temple_hindu'],
-            transporte: ['local_taxi', 'airport_shuttle', 'train', 'subway', 'directions_bus', 'directions_car', 'directions_boat', 'flight', 'two_wheeler', 'electric_scooter', 'electric_bike', 'pedal_bike'],
-            restaurante: ['restaurant', 'local_cafe', 'local_bar', 'local_dining', 'lunch_dining', 'dinner_dining', 'breakfast_dining', 'ramen_dining', 'local_pizza', 'fastfood', 'coffee', 'liquor', 'wine_bar'],
-            compras: ['shopping_cart', 'shopping_bag', 'storefront', 'local_mall', 'local_grocery_store', 'local_convenience_store', 'sell', 'loyalty', 'redeem'],
-            entretenimiento: ['theater_comedy', 'sports_esports', 'sports_soccer', 'casino', 'sports_bar', 'celebration', 'attractions', 'festival', 'nightlife', 'pool', 'spa'],
-            naturaleza: ['park', 'forest', 'landscape', 'terrain', 'water', 'beach_access', 'sailing', 'surfing', 'directions_walk', 'hiking', 'nature', 'nature_people'],
-            ubicacion: ['location_on', 'place', 'map', 'my_location', 'near_me', 'explore', 'navigation', 'pin_drop', 'add_location', 'edit_location', 'gps_fixed', 'gps_not_fixed'],
-            informacion: ['info', 'info_outline', 'help', 'help_outline', 'announcement', 'campaign', 'notifications', 'notifications_active'],
-            personas: ['person', 'people', 'group', 'groups', 'family_restroom', 'elderly', 'accessible', 'child_care', 'face', 'badge', 'supervisor_account'],
-            trabajo: ['work', 'business_center', 'engineering', 'construction', 'handyman', 'plumbing', 'electrical_services'],
-            educacion: ['school', 'local_library', 'menu_book', 'auto_stories', 'import_contacts'],
-            finanzas: ['account_balance', 'account_balance_wallet', 'payments', 'credit_card', 'paid', 'attach_money', 'currency_exchange', 'atm', 'money'],
-            tecnologia: ['computer', 'phone_android', 'phone_iphone', 'tablet', 'watch', 'headphones', 'router', 'wifi', 'signal_cellular_alt'],
-            tiempo: ['schedule', 'access_time', 'alarm', 'timer', 'hourglass_empty', 'update', 'history', 'watch_later'],
-            clima: ['wb_sunny', 'wb_cloudy', 'cloud', 'thunderstorm', 'ac_unit', 'thermostat', 'air', 'wind_power'],
-            correo: ['mail', 'email', 'send', 'inbox', 'drafts', 'mark_email_read', 'forward_to_inbox'],
-            configuracion: ['settings', 'tune', 'build', 'construction', 'handyman', 'home_repair_service'],
-            varios: ['star', 'favorite', 'bookmark', 'label', 'flag', 'push_pin', 'priority_high', 'grade', 'verified', 'check_circle', 'cancel', 'error', 'warning', 'lightbulb', 'emoji_objects', 'key', 'lock', 'lock_open', 'visibility', 'visibility_off']
-        };
-
-        const modal = document.getElementById('iconModal');
-        const btnOpen = document.getElementById('btnOpenIconPicker');
-        const btnClose = document.getElementById('btnCloseModal');
-        const iconoInput = document.getElementById('iconoInput');
-        const iconoPreview = document.getElementById('iconoPreview');
-        const iconGrid = document.getElementById('iconGrid');
-        const iconSearch = document.getElementById('iconSearch');
-        const noResults = document.getElementById('noResults');
-
-        let allIcons = [];
-        
-        // Convertir objeto de iconos a array plano
-        Object.values(icons).forEach(category => {
-            allIcons = [...allIcons, ...category];
-        });
-        
-        // Eliminar duplicados
-        allIcons = [...new Set(allIcons)];
-
-        // Función para renderizar iconos
-        function renderIcons(iconsToRender) {
-            iconGrid.innerHTML = '';
+        // Configurar selector de iconos cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnOpen = document.getElementById('btnOpenIconPicker');
+            const iconoInput = document.getElementById('iconoInput');
+            const iconoPreview = document.getElementById('iconoPreview');
             
-            if (iconsToRender.length === 0) {
-                iconGrid.classList.add('hidden');
-                noResults.classList.remove('hidden');
-                return;
-            }
-            
-            iconGrid.classList.remove('hidden');
-            noResults.classList.add('hidden');
-            
-            iconsToRender.forEach(icon => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'icon-option flex flex-col items-center justify-center p-2 rounded-lg border-2 border-gray-200 hover:border-blue-500 transition cursor-pointer';
-                btn.dataset.icon = icon;
-                btn.innerHTML = `<span class="material-symbols-outlined text-2xl text-gray-700">${icon}</span>`;
-                btn.title = icon;
-                
-                btn.addEventListener('click', () => selectIcon(icon));
-                iconGrid.appendChild(btn);
-            });
-        }
-
-        // Función para seleccionar icono
-        function selectIcon(icon) {
-            iconoInput.value = icon;
-            iconoPreview.textContent = icon;
-            
-            // Marcar como seleccionado
-            document.querySelectorAll('.icon-option').forEach(opt => {
-                if (opt.dataset.icon === icon) {
-                    opt.classList.add('selected');
-                } else {
-                    opt.classList.remove('selected');
-                }
-            });
-            
-            setTimeout(() => modal.classList.add('hidden'), 150);
-        }
-
-        // Abrir modal
-        btnOpen.addEventListener('click', () => {
-            modal.classList.remove('hidden');
-            iconSearch.value = '';
-            renderIcons(allIcons);
-            iconSearch.focus();
-            
-            // Marcar icono actual
-            setTimeout(() => {
-                const currentIcon = iconoInput.value;
-                document.querySelectorAll('.icon-option').forEach(opt => {
-                    if (opt.dataset.icon === currentIcon) {
-                        opt.classList.add('selected');
-                        opt.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                    }
-                });
-            }, 100);
-        });
-
-        // Cerrar modal
-        btnClose.addEventListener('click', () => modal.classList.add('hidden'));
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.add('hidden');
-        });
-
-        // Buscador
-        iconSearch.addEventListener('input', (e) => {
-            const search = e.target.value.toLowerCase().trim();
-            if (search === '') {
-                renderIcons(allIcons);
-            } else {
-                const filtered = allIcons.filter(icon => icon.includes(search));
-                renderIcons(filtered);
-            }
-        });
-
-        // Actualizar preview cuando se escribe manualmente
-        iconoInput.addEventListener('input', (e) => {
-            iconoPreview.textContent = e.target.value || 'emergency';
-        });
-
-        // Cerrar modal con Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
+            if (btnOpen && iconoInput && iconPicker) {
+                iconPicker.attachToInput(iconoInput, btnOpen, iconoPreview);
             }
         });
     </script>

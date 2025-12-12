@@ -341,6 +341,18 @@ if (isset($_GET['success'])) {
                             <button type="button" onclick="aplicarPreset('cultural')" class="text-xs px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700">
                                 🏯 Cultural
                             </button>
+                            <button type="button" onclick="aplicarPreset('urbano')" class="text-xs px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-600">
+                                🏙️ Urbano
+                            </button>
+                            <button type="button" onclick="aplicarPreset('naturaleza')" class="text-xs px-3 py-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600">
+                                🌿 Naturaleza
+                            </button>
+                            <button type="button" onclick="aplicarPreset('oceano')" class="text-xs px-3 py-1.5 bg-sky-500 text-white rounded hover:bg-sky-600">
+                                🌊 Océano
+                            </button>
+                            <button type="button" onclick="aplicarPreset('minimalista')" class="text-xs px-3 py-1.5 bg-slate-500 text-white rounded hover:bg-slate-600">
+                                ⚪ Minimalista
+                            </button>
                             <button type="button" onclick="aplicarPreset('default')" class="text-xs px-3 py-1.5 bg-gray-600 text-white rounded hover:bg-gray-700">
                                 ↺ Por Defecto
                             </button>
@@ -415,6 +427,38 @@ if (isset($_GET['success'])) {
             bg_dark: '#1C1C1C',
             card_light: '#FFFFFF',
             card_dark: '#2a2a2a'
+        },
+        urbano: {
+            primary: '#6366F1',
+            secondary: '#EC4899',
+            bg_light: '#F8FAFC',
+            bg_dark: '#0F172A',
+            card_light: '#FFFFFF',
+            card_dark: '#1E293B'
+        },
+        naturaleza: {
+            primary: '#10B981',
+            secondary: '#F59E0B',
+            bg_light: '#F0FDF4',
+            bg_dark: '#14532D',
+            card_light: '#FFFFFF',
+            card_dark: '#1F3A2A'
+        },
+        oceano: {
+            primary: '#0EA5E9',
+            secondary: '#06B6D4',
+            bg_light: '#F0F9FF',
+            bg_dark: '#082F49',
+            card_light: '#FFFFFF',
+            card_dark: '#164E63'
+        },
+        minimalista: {
+            primary: '#64748B',
+            secondary: '#94A3B8',
+            bg_light: '#F8FAFC',
+            bg_dark: '#1E293B',
+            card_light: '#FFFFFF',
+            card_dark: '#334155'
         },
         default: {
             primary: '#4A90E2',

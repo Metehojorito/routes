@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                            value="<?php echo htmlspecialchars($detalle['icono']); ?>"
                                            placeholder="schedule..."
                                            class="detalle-icono-input w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <button type="button" class="btn-open-detalle-icon absolute right-2 top-2 p-1 hover:bg-gray-100 rounded -mt-1" title="Elegir icono">
+                                    <button type="button" class="btn-open-detalle-icon absolute right-2 top-2 p-1 hover:bg-gray-100 rounded" title="Elegir icono">
                                         <span class="material-symbols-outlined text-gray-600 text-xl detalle-icono-preview"><?php echo htmlspecialchars($detalle['icono']); ?></span>
                                     </button>
                                 </div>
@@ -296,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </main>
     </div>
 
-    <!-- Modal de Selector de Iconos (igual que en contactos_form.php) -->
+    <!-- Modal de Selector de Iconos -->
     <div id="iconModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -321,194 +321,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
+    <!-- Scripts Externos -->
+    <script src="js/icons-library.js"></script>
+    <script src="js/icon-picker.js"></script>
+    
+    <!-- Script Específico de la Página -->
     <script>
-    let detalleIndex = <?php echo !empty($detalles) ? count($detalles) : 0; ?>;
-    
-    function agregarDetalle() {
-        const container = document.getElementById('detalles-container');
-        const div = document.createElement('div');
-        div.className = 'flex gap-2 detalle-row';
-        div.dataset.detalleIndex = detalleIndex;
-        div.innerHTML = `
-            <div class="relative flex-shrink-0" style="width: 140px;">
-                <input type="text" name="detalles[${detalleIndex}][icono]" 
-                       placeholder="schedule..."
-                       class="detalle-icono-input w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button type="button" class="btn-open-detalle-icon absolute right-2 top-2 p-1 hover:bg-gray-100 rounded -mt-1" title="Elegir icono">
-                    <span class="material-symbols-outlined text-gray-600 text-xl detalle-icono-preview">schedule</span>
-                </button>
-            </div>
-            <input type="text" name="detalles[${detalleIndex}][texto]" 
-                   placeholder="Llegada: 14:25"
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button type="button" onclick="this.parentElement.remove()" 
-                    class="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md">
-                ✕
-            </button>
-        `;
-        container.appendChild(div);
+        let detalleIndex = <?php echo !empty($detalles) ? count($detalles) : 0; ?>;
         
-        // Attach event listeners to new detalle row
-        attachDetalleIconEvents(div);
-        
-        detalleIndex++;
-    }
-    
-    function attachDetalleIconEvents(row) {
-        const btnOpen = row.querySelector('.btn-open-detalle-icon');
-        const input = row.querySelector('.detalle-icono-input');
-        const preview = row.querySelector('.detalle-icono-preview');
-        
-        btnOpen.addEventListener('click', () => {
-            openDetalleIconModal(input, preview);
-        });
-        
-        input.addEventListener('input', (e) => {
-            preview.textContent = e.target.value || 'schedule';
-        });
-    }
-
-    // Sistema de selector de iconos (copiado de contactos_form.php)
-    const icons = {
-        emergencia: ['emergency', 'e911_emergency', 'emergency_home', 'emergency_share', 'sos', 'medical_services', 'healing', 'vaccines', 'medication', 'health_and_safety'],
-        policia: ['local_police', 'security', 'shield', 'shield_person', 'verified_user', 'gavel', 'policy'],
-        hospital: ['local_hospital', 'emergency_home', 'medical_services', 'health_and_safety', 'favorite', 'monitor_heart', 'ecg_heart'],
-        bomberos: ['local_fire_department', 'fire_truck', 'fire_extinguisher', 'fireplace'],
-        telefono: ['phone', 'call', 'phone_in_talk', 'phone_enabled', 'contact_phone', 'phonelink_ring', 'ring_volume', 'call_end', 'phone_callback', 'phone_forwarded', 'phone_missed', 'phone_paused'],
-        soporte: ['support_agent', 'headset_mic', 'contact_support', 'help', 'help_center', 'live_help'],
-        lugares: ['home', 'hotel', 'apartment', 'cottage', 'villa', 'house', 'cabin', 'location_city', 'business', 'storefront', 'store', 'factory', 'warehouse', 'domain', 'place', 'map'],
-        institucional: ['account_balance', 'museum', 'church', 'synagogue', 'mosque', 'temple_buddhist', 'temple_hindu', 'fort'],
-        transporte: ['local_taxi', 'airport_shuttle', 'train', 'subway', 'directions_bus', 'directions_car', 'directions_boat', 'flight', 'flight_takeoff', 'flight_land', 'two_wheeler', 'electric_scooter', 'electric_bike', 'pedal_bike'],
-        restaurante: ['restaurant', 'local_cafe', 'local_bar', 'local_dining', 'lunch_dining', 'dinner_dining', 'breakfast_dining', 'ramen_dining', 'local_pizza', 'fastfood', 'coffee', 'liquor', 'wine_bar'],
-        compras: ['shopping_cart', 'shopping_bag', 'storefront', 'local_mall', 'local_grocery_store', 'local_convenience_store', 'sell', 'loyalty', 'redeem'],
-        entretenimiento: ['theater_comedy', 'sports_esports', 'sports_soccer', 'casino', 'sports_bar', 'celebration', 'attractions', 'festival', 'nightlife', 'pool', 'spa', 'tour'],
-        naturaleza: ['park', 'forest', 'landscape', 'terrain', 'water', 'beach_access', 'sailing', 'surfing', 'directions_walk', 'hiking', 'nature', 'nature_people', 'wind_power'],
-        ubicacion: ['location_on', 'place', 'map', 'my_location', 'near_me', 'explore', 'navigation', 'pin_drop', 'add_location', 'edit_location', 'gps_fixed', 'gps_not_fixed'],
-        informacion: ['info', 'info_outline', 'help', 'help_outline', 'announcement', 'campaign', 'notifications', 'notifications_active'],
-        tiempo: ['schedule', 'access_time', 'alarm', 'timer', 'hourglass_empty', 'update', 'history', 'watch_later', 'today', 'event', 'calendar_today'],
-        precio: ['confirmation_number', 'receipt', 'receipt_long', 'paid', 'attach_money', 'euro', 'currency_pound', 'currency_exchange', 'payments', 'credit_card', 'local_atm'],
-        varios: ['star', 'favorite', 'bookmark', 'label', 'flag', 'push_pin', 'priority_high', 'grade', 'verified', 'check_circle', 'cancel', 'error', 'warning', 'lightbulb', 'emoji_objects', 'key', 'lock']
-    };
-
-    const modal = document.getElementById('iconModal');
-    const btnOpen = document.getElementById('btnOpenIconPicker');
-    const btnClose = document.getElementById('btnCloseModal');
-    const iconoInput = document.getElementById('iconoInput');
-    const iconoPreview = document.getElementById('iconoPreview');
-    const iconGrid = document.getElementById('iconGrid');
-    const iconSearch = document.getElementById('iconSearch');
-    const noResults = document.getElementById('noResults');
-
-    let allIcons = [];
-    Object.values(icons).forEach(category => {
-        allIcons = [...allIcons, ...category];
-    });
-    allIcons = [...new Set(allIcons)];
-    
-    let currentTargetInput = null;
-    let currentTargetPreview = null;
-
-    function renderIcons(iconsToRender) {
-        iconGrid.innerHTML = '';
-        
-        if (iconsToRender.length === 0) {
-            iconGrid.classList.add('hidden');
-            noResults.classList.remove('hidden');
-            return;
-        }
-        
-        iconGrid.classList.remove('hidden');
-        noResults.classList.add('hidden');
-        
-        iconsToRender.forEach(icon => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'icon-option flex flex-col items-center justify-center p-2 rounded-lg border-2 border-gray-200 hover:border-blue-500 transition cursor-pointer';
-            btn.dataset.icon = icon;
-            btn.innerHTML = `<span class="material-symbols-outlined text-2xl text-gray-700">${icon}</span>`;
-            btn.title = icon;
+        // Configurar selector de iconos principal cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configurar el selector de iconos principal de la actividad
+            const btnOpen = document.getElementById('btnOpenIconPicker');
+            const iconoInput = document.getElementById('iconoInput');
+            const iconoPreview = document.getElementById('iconoPreview');
             
-            btn.addEventListener('click', () => selectIcon(icon));
-            iconGrid.appendChild(btn);
-        });
-    }
-
-    function selectIcon(icon) {
-        if (currentTargetInput) {
-            currentTargetInput.value = icon;
-            if (currentTargetPreview) {
-                currentTargetPreview.textContent = icon;
+            if (btnOpen && iconoInput && iconPicker) {
+                iconPicker.attachToInput(iconoInput, btnOpen, iconoPreview);
             }
-        }
-        
-        document.querySelectorAll('.icon-option').forEach(opt => {
-            if (opt.dataset.icon === icon) {
-                opt.classList.add('selected');
-            } else {
-                opt.classList.remove('selected');
-            }
-        });
-        
-        setTimeout(() => modal.classList.add('hidden'), 150);
-    }
-    
-    function openDetalleIconModal(inputElement, previewElement) {
-        currentTargetInput = inputElement;
-        currentTargetPreview = previewElement;
-        
-        modal.classList.remove('hidden');
-        iconSearch.value = '';
-        renderIcons(allIcons);
-        iconSearch.focus();
-        
-        setTimeout(() => {
-            const currentIcon = inputElement.value;
-            document.querySelectorAll('.icon-option').forEach(opt => {
-                if (opt.dataset.icon === currentIcon) {
-                    opt.classList.add('selected');
-                    opt.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                }
+            
+            // Configurar selectores de iconos existentes en detalles
+            document.querySelectorAll('.detalle-row').forEach(row => {
+                attachDetalleIconEvents(row);
             });
-        }, 100);
-    }
-
-    btnOpen.addEventListener('click', () => {
-        currentTargetInput = iconoInput;
-        currentTargetPreview = iconoPreview;
-        openDetalleIconModal(iconoInput, iconoPreview);
-    });
-
-    btnClose.addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.add('hidden');
-    });
-
-    iconSearch.addEventListener('input', (e) => {
-        const search = e.target.value.toLowerCase().trim();
-        if (search === '') {
-            renderIcons(allIcons);
-        } else {
-            const filtered = allIcons.filter(icon => icon.includes(search));
-            renderIcons(filtered);
-        }
-    });
-
-    iconoInput.addEventListener('input', (e) => {
-        iconoPreview.textContent = e.target.value || 'place';
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-            modal.classList.add('hidden');
-        }
-    });
-    
-    // Attach events to existing detalle rows
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.detalle-row').forEach(row => {
-            attachDetalleIconEvents(row);
         });
-    });
+        
+        function agregarDetalle() {
+            const container = document.getElementById('detalles-container');
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 detalle-row';
+            div.dataset.detalleIndex = detalleIndex;
+            div.innerHTML = `
+                <div class="relative flex-shrink-0" style="width: 140px;">
+                    <input type="text" name="detalles[${detalleIndex}][icono]" 
+                           placeholder="schedule..."
+                           class="detalle-icono-input w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="button" class="btn-open-detalle-icon absolute right-2 top-2 p-1 hover:bg-gray-100 rounded" title="Elegir icono">
+                        <span class="material-symbols-outlined text-gray-600 text-xl detalle-icono-preview">schedule</span>
+                    </button>
+                </div>
+                <input type="text" name="detalles[${detalleIndex}][texto]" 
+                       placeholder="Llegada: 14:25"
+                       class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="button" onclick="this.parentElement.remove()" 
+                        class="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md">
+                    ✕
+                </button>
+            `;
+            container.appendChild(div);
+            
+            // Adjuntar eventos al nuevo detalle
+            attachDetalleIconEvents(div);
+            
+            detalleIndex++;
+        }
+        
+        function attachDetalleIconEvents(row) {
+            const btnOpen = row.querySelector('.btn-open-detalle-icon');
+            const input = row.querySelector('.detalle-icono-input');
+            const preview = row.querySelector('.detalle-icono-preview');
+            
+            if (btnOpen && input && iconPicker) {
+                iconPicker.attachToInput(input, btnOpen, preview);
+            }
+        }
     </script>
 </body>
 </html>
