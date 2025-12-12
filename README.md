@@ -106,7 +106,7 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/gestor-viajes.git
+git clone https://github.com/Metehojorito/routes.git
 cd gestor-viajes
 ```
 
@@ -309,7 +309,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ## 👥 Autores
 
-- **Tu Nombre** - *Desarrollo inicial* - [tu-usuario](https://github.com/tu-usuario)
+- **Metehojorito** - *Desarrollo inicial* - [Metehojorito](https://github.com/Metehojorito)
 
 ## 🙏 Agradecimientos
 
@@ -322,7 +322,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 Para preguntas o sugerencias:
 - Email: tu-email@ejemplo.com
-- Issues: [GitHub Issues](https://github.com/tu-usuario/gestor-viajes/issues)
+- Issues: [GitHub Issues](https://github.com/Metehojorito/routes/issues)
 
 ---
 
