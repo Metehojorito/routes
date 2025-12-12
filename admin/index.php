@@ -17,8 +17,10 @@ $viajes = $stmt->fetchAll();
     <title>Panel de Administración - Gestor de Viajes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -158,13 +160,41 @@ $viajes = $stmt->fetchAll();
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Inactivo</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="../index.php?viaje=<?php echo urlencode($viaje['slug']); ?>" target="_blank" class="text-blue-600 hover:text-blue-900 mr-3">Ver</a>
-                                    <a href="viaje_form.php?id=<?php echo $viaje['id']; ?>" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</a>
-                                    <a href="dias_list.php?viaje_id=<?php echo $viaje['id']; ?>" class="text-purple-600 hover:text-purple-900 mr-3">Días</a>
-                                    <a href="alojamientos_list.php?viaje_id=<?php echo $viaje['id']; ?>" class="text-green-600 hover:text-green-900 mr-3">Alojamiento</a>
-                                    <a href="contactos_list.php?viaje_id=<?php echo $viaje['id']; ?>" class="text-orange-600 hover:text-orange-900 mr-3">Contactos</a>
-                                    <a href="viaje_delete.php?id=<?php echo $viaje['id']; ?>" onclick="return confirm('¿Estás seguro de eliminar este viaje?')" class="text-red-600 hover:text-red-900">Eliminar</a>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <a href="../index.php?viaje=<?php echo urlencode($viaje['slug']); ?>" 
+                                           target="_blank" 
+                                           class="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50 transition"
+                                           title="Ver público">
+                                            <span class="material-symbols-outlined text-xl">visibility</span>
+                                        </a>
+                                        <a href="viaje_form.php?id=<?php echo $viaje['id']; ?>" 
+                                           class="text-indigo-600 hover:text-indigo-900 p-2 rounded hover:bg-indigo-50 transition"
+                                           title="Editar viaje">
+                                            <span class="material-symbols-outlined text-xl">edit</span>
+                                        </a>
+                                        <a href="dias_list.php?viaje_id=<?php echo $viaje['id']; ?>" 
+                                           class="text-purple-600 hover:text-purple-900 p-2 rounded hover:bg-purple-50 transition"
+                                           title="Gestionar días">
+                                            <span class="material-symbols-outlined text-xl">calendar_month</span>
+                                        </a>
+                                        <a href="alojamientos_list.php?viaje_id=<?php echo $viaje['id']; ?>" 
+                                           class="text-green-600 hover:text-green-900 p-2 rounded hover:bg-green-50 transition"
+                                           title="Alojamientos">
+                                            <span class="material-symbols-outlined text-xl">home</span>
+                                        </a>
+                                        <a href="contactos_list.php?viaje_id=<?php echo $viaje['id']; ?>" 
+                                           class="text-orange-600 hover:text-orange-900 p-2 rounded hover:bg-orange-50 transition"
+                                           title="Contactos emergencia">
+                                            <span class="material-symbols-outlined text-xl">emergency</span>
+                                        </a>
+                                        <a href="viaje_delete.php?id=<?php echo $viaje['id']; ?>" 
+                                           onclick="return confirm('¿Estás seguro de eliminar este viaje?')" 
+                                           class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"
+                                           title="Eliminar viaje">
+                                            <span class="material-symbols-outlined text-xl">delete</span>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

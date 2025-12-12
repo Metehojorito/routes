@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descripcion = trim($_POST['descripcion'] ?? '');
     $fecha_inicio = $_POST['fecha_inicio'] ?? '';
     $fecha_fin = $_POST['fecha_fin'] ?? '';
-    $imagen_portada = trim($_POST['imagen_portada'] ?? '');
     $activo = isset($_POST['activo']) ? 1 : 0;
     
     // Colores personalizables
@@ -44,14 +43,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (empty($fecha_inicio) || empty($fecha_fin)) {
         $error = "Las fechas son obligatorias";
     } else {
-        // Auto-generar slug si está vacío
-        if (empty($slug)) {
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $titulo)));
-        }
-        
         try {
-            if ($id > 0) {
-                // Actualizar
+            // Si estamos creando, insertar primero para obtener el ID
+            if ($id == 0) {
+                $stmt = $db->prepare("
+                    INSERT INTO viajes (titulo, slug, descripcion, fecha_inicio, fecha_fin, imagen_portada, activo,
+                                       color_primary, color_secondary, color_bg_light, color_bg_dark,
+                                       color_card_light, color_card_dark) 
+                    VALUES (?, ?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, ?)
+                ");
+                $stmt->execute([$titulo, $slug, $descripcion, $fecha_inicio, $fecha_fin, $activo,
+                               $color_primary, $color_secondary, $color_bg_light, $color_bg_dark,
+                               $color_card_light, $color_card_dark]);
+                $id = $db->lastInsertId();
+            }
+            
+            // Procesar imagen de portada si se sube
+            $imagen_portada = $viaje['imagen_portada'] ?? '';
+            if (isset($_FILES['imagen_portada']) && $_FILES['imagen_portada']['error'] === UPLOAD_ERR_OK) {
+                $upload_dir = "../images/$id/portada/";
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
+                }
+                
+                $file_extension = strtolower(pathinfo($_FILES['imagen_portada']['name'], PATHINFO_EXTENSION));
+                $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                
+                if (in_array($file_extension, $allowed_extensions)) {
+                    // Eliminar imagen anterior si existe
+                    if (!empty($imagen_portada) && strpos($imagen_portada, 'images/') !== false) {
+                        $old_file = "../" . $imagen_portada;
+                        if (file_exists($old_file)) {
+                            unlink($old_file);
+                        }
+                    }
+                    
+                    $new_filename = 'portada_' . time() . '.' . $file_extension;
+                    $destination = $upload_dir . $new_filename;
+                    
+                    if (move_uploaded_file($_FILES['imagen_portada']['tmp_name'], $destination)) {
+                        $imagen_portada = "images/$id/portada/" . $new_filename;
+                    } else {
+                        $error = "Error al subir la imagen";
+                    }
+                } else {
+                    $error = "Formato de imagen no válido. Usa JPG, PNG, GIF o WEBP";
+                }
+            }
+            
+            if (empty($error)) {
+                // Actualizar con la imagen
                 $stmt = $db->prepare("
                     UPDATE viajes SET 
                         titulo = ?, slug = ?, descripcion = ?, 
@@ -65,29 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$titulo, $slug, $descripcion, $fecha_inicio, $fecha_fin, $imagen_portada, $activo,
                                $color_primary, $color_secondary, $color_bg_light, $color_bg_dark, 
                                $color_card_light, $color_card_dark, $id]);
-                $success = "Viaje actualizado correctamente";
+                $success = $viaje ? "Viaje actualizado correctamente" : "Viaje creado correctamente";
                 
                 // Recargar datos
                 $stmt = $db->prepare("SELECT * FROM viajes WHERE id = ?");
                 $stmt->execute([$id]);
                 $viaje = $stmt->fetch();
-            } else {
-                // Insertar
-                $stmt = $db->prepare("
-                    INSERT INTO viajes (titulo, slug, descripcion, fecha_inicio, fecha_fin, imagen_portada, activo,
-                                       color_primary, color_secondary, color_bg_light, color_bg_dark,
-                                       color_card_light, color_card_dark) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
-                $stmt->execute([$titulo, $slug, $descripcion, $fecha_inicio, $fecha_fin, $imagen_portada, $activo,
-                               $color_primary, $color_secondary, $color_bg_light, $color_bg_dark,
-                               $color_card_light, $color_card_dark]);
-                $id = $db->lastInsertId();
-                $success = "Viaje creado correctamente";
-                
-                // Redirigir a edición
-                header("Location: viaje_form.php?id=$id&success=1");
-                exit;
             }
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
@@ -113,6 +137,7 @@ if (isset($_GET['success'])) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        #preview-image { max-height: 200px; object-fit: cover; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -175,7 +200,7 @@ if (isset($_GET['success'])) {
             </div>
             <?php endif; ?>
 
-            <form method="POST" class="bg-white shadow rounded-lg p-6 space-y-6">
+            <form method="POST" enctype="multipart/form-data" class="bg-white shadow rounded-lg p-6 space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Título del Viaje *</label>
                     <input type="text" name="titulo" value="<?php echo htmlspecialchars($viaje['titulo'] ?? ''); ?>" required 
@@ -210,10 +235,23 @@ if (isset($_GET['success'])) {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">URL Imagen de Portada</label>
-                    <input type="url" name="imagen_portada" value="<?php echo htmlspecialchars($viaje['imagen_portada'] ?? ''); ?>" 
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Imagen de Portada</label>
+                    
+                    <?php if (!empty($viaje['imagen_portada'])): ?>
+                    <div class="mb-3">
+                        <img id="preview-image" src="../<?php echo htmlspecialchars($viaje['imagen_portada']); ?>" alt="Portada actual" class="rounded-lg border border-gray-300">
+                        <p class="text-sm text-gray-500 mt-1">Imagen actual</p>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <input type="file" name="imagen_portada" id="imagen_portada" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="mt-1 text-sm text-gray-500">URL completa de la imagen de fondo para la portada</p>
+                    <p class="mt-1 text-sm text-gray-500">JPG, PNG, GIF o WEBP. <?php echo $viaje ? 'Deja vacío para mantener la imagen actual.' : ''; ?></p>
+                    
+                    <div id="new-preview" class="hidden mt-3">
+                        <img id="new-preview-image" src="" alt="Vista previa" class="rounded-lg border border-gray-300">
+                        <p class="text-sm text-green-600 mt-1">Nueva imagen seleccionada</p>
+                    </div>
                 </div>
 
                 <div class="border-t pt-6">
@@ -329,6 +367,21 @@ if (isset($_GET['success'])) {
     </div>
     
     <script>
+    // Preview de imagen seleccionada
+    document.getElementById('imagen_portada').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('new-preview-image').src = e.target.result;
+                document.getElementById('new-preview').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            document.getElementById('new-preview').classList.add('hidden');
+        }
+    });
+
     // Presets de colores predefinidos
     const presets = {
         tropical: {
@@ -377,7 +430,6 @@ if (isset($_GET['success'])) {
         const colores = presets[preset];
         if (!colores) return;
 
-        // Actualizar inputs de color
         document.querySelector('input[name="color_primary"]').value = colores.primary;
         document.querySelector('input[name="color_secondary"]').value = colores.secondary;
         document.querySelector('input[name="color_bg_light"]').value = colores.bg_light;
@@ -385,7 +437,6 @@ if (isset($_GET['success'])) {
         document.querySelector('input[name="color_card_light"]').value = colores.card_light;
         document.querySelector('input[name="color_card_dark"]').value = colores.card_dark;
 
-        // Actualizar inputs de texto (readonly)
         const textInputs = document.querySelectorAll('input[type="text"][readonly]');
         textInputs[0].value = colores.primary;
         textInputs[1].value = colores.secondary;

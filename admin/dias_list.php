@@ -5,6 +5,23 @@ require_once '../config/database.php';
 $viaje_id = isset($_GET['viaje_id']) ? (int)$_GET['viaje_id'] : 0;
 $db = getDB();
 
+// Procesar actualización de orden (AJAX)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_order') {
+    header('Content-Type: application/json');
+    $orders = json_decode($_POST['orders'], true);
+    
+    try {
+        foreach ($orders as $id => $orden) {
+            $stmt = $db->prepare("UPDATE dias_viaje SET orden = ? WHERE id = ?");
+            $stmt->execute([$orden, $id]);
+        }
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 // Obtener viaje
 $stmt = $db->prepare("SELECT * FROM viajes WHERE id = ?");
 $stmt->execute([$viaje_id]);
@@ -37,8 +54,13 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     <title>Días de <?php echo htmlspecialchars($viaje['titulo']); ?> - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .dragging { opacity: 0.5; }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -70,13 +92,16 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                     <h2 class="text-xl font-semibold text-gray-900">
                         Itinerario - <?php echo count($dias); ?> días
                     </h2>
-                    <div class="flex gap-2">
-                        <a href="alojamiento_form.php?viaje_id=<?php echo $viaje_id; ?>" class="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded font-medium transition">
-                            Alojamiento
-                        </a>
-                        <a href="contactos_form.php?viaje_id=<?php echo $viaje_id; ?>" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded font-medium transition">
-                            Emergencias
-                        </a>
+                    <div class="flex items-center gap-4">
+                        <p class="text-sm text-gray-500">Arrastra para reordenar</p>
+                        <div class="flex gap-2">
+                            <a href="alojamiento_form.php?viaje_id=<?php echo $viaje_id; ?>" class="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded font-medium transition">
+                                Alojamiento
+                            </a>
+                            <a href="contactos_form.php?viaje_id=<?php echo $viaje_id; ?>" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded font-medium transition">
+                                Emergencias
+                            </a>
+                        </div>
                     </div>
                 </div>
                 
@@ -94,16 +119,19 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                     </div>
                 </div>
                 <?php else: ?>
-                <div class="divide-y divide-gray-200">
+                <div id="diasContainer" class="divide-y divide-gray-200">
                     <?php foreach ($dias as $dia): 
                         $fecha = new DateTime($dia['fecha']);
                         $mes = $meses[(int)$fecha->format('n')];
                         $dia_num = $fecha->format('d');
                         $dia_semana = $dias_semana[(int)$fecha->format('w')];
                     ?>
-                    <div class="px-6 py-4 hover:bg-gray-50 transition">
+                    <div class="dia-item px-6 py-4 hover:bg-gray-50 transition" data-id="<?php echo $dia['id']; ?>">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-4 flex-1">
+                                <div class="drag-handle text-gray-400 hover:text-gray-600">
+                                    <span class="material-symbols-outlined">drag_indicator</span>
+                                </div>
                                 <div class="flex-shrink-0 w-16 h-16 bg-blue-100 rounded-lg flex flex-col items-center justify-center">
                                     <span class="text-xs font-semibold text-blue-600"><?php echo strtoupper($mes); ?></span>
                                     <span class="text-2xl font-bold text-blue-700"><?php echo $dia_num; ?></span>
@@ -115,6 +143,9 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                                     </div>
                                     <p class="text-sm text-gray-600 mt-1"><?php echo $dia_semana; ?>, <?php echo $fecha->format('d/m/Y'); ?></p>
                                     <div class="flex gap-2 mt-2">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 orden-badge">
+                                            Orden: <?php echo $dia['orden']; ?>
+                                        </span>
                                         <span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
                                             <?php echo $dia['total_secciones']; ?> secciones
                                         </span>
@@ -124,27 +155,33 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <a href="../dia.php?viaje=<?php echo urlencode($viaje['slug']); ?>&dia=<?php echo $dia['numero_dia']; ?>" target="_blank" 
-                                   class="text-blue-600 hover:text-blue-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-blue-50 transition">
-                                    Ver
+                            <div class="flex items-center space-x-1">
+                                <a href="../dia.php?viaje=<?php echo urlencode($viaje['slug']); ?>&dia=<?php echo $dia['numero_dia']; ?>" 
+                                   target="_blank" 
+                                   class="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50 transition"
+                                   title="Ver vista pública">
+                                    <span class="material-symbols-outlined">visibility</span>
                                 </a>
                                 <a href="secciones_list.php?dia_id=<?php echo $dia['id']; ?>" 
-                                   class="text-purple-600 hover:text-purple-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-purple-50 transition">
-                                    Secciones
+                                   class="text-purple-600 hover:text-purple-900 p-2 rounded hover:bg-purple-50 transition"
+                                   title="Gestionar secciones">
+                                    <span class="material-symbols-outlined">segment</span>
                                 </a>
                                 <a href="actividades_list.php?dia_id=<?php echo $dia['id']; ?>" 
-                                   class="text-green-600 hover:text-green-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-green-50 transition">
-                                    Actividades
+                                   class="text-green-600 hover:text-green-900 p-2 rounded hover:bg-green-50 transition"
+                                   title="Gestionar actividades">
+                                    <span class="material-symbols-outlined">list</span>
                                 </a>
                                 <a href="dia_form.php?id=<?php echo $dia['id']; ?>" 
-                                   class="text-indigo-600 hover:text-indigo-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-indigo-50 transition">
-                                    Editar
+                                   class="text-indigo-600 hover:text-indigo-900 p-2 rounded hover:bg-indigo-50 transition"
+                                   title="Editar día">
+                                    <span class="material-symbols-outlined">edit</span>
                                 </a>
                                 <a href="dia_delete.php?id=<?php echo $dia['id']; ?>" 
                                    onclick="return confirm('¿Eliminar este día y todas sus actividades?')" 
-                                   class="text-red-600 hover:text-red-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-red-50 transition">
-                                    Eliminar
+                                   class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"
+                                   title="Eliminar día">
+                                    <span class="material-symbols-outlined">delete</span>
                                 </a>
                             </div>
                         </div>
@@ -155,5 +192,101 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
             </div>
         </main>
     </div>
+
+    <script>
+    // Sistema de drag & drop para reordenar días
+    const container = document.getElementById('diasContainer');
+    let draggedElement = null;
+
+    if (container) {
+        const items = container.querySelectorAll('.dia-item');
+        
+        items.forEach(item => {
+            const handle = item.querySelector('.drag-handle');
+            
+            handle.addEventListener('mousedown', () => {
+                item.draggable = true;
+            });
+            
+            handle.addEventListener('mouseup', () => {
+                item.draggable = false;
+            });
+            
+            item.addEventListener('dragstart', (e) => {
+                draggedElement = item;
+                item.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                item.draggable = false;
+            });
+            
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientY);
+                if (afterElement == null) {
+                    container.appendChild(draggedElement);
+                } else {
+                    container.insertBefore(draggedElement, afterElement);
+                }
+            });
+        });
+        
+        container.addEventListener('dragend', () => {
+            updateOrder();
+        });
+    }
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.dia-item:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function updateOrder() {
+        const items = container.querySelectorAll('.dia-item');
+        const orders = {};
+        
+        items.forEach((item, index) => {
+            const id = item.dataset.id;
+            orders[id] = index + 1;
+            
+            // Actualizar el número visual
+            const badge = item.querySelector('.orden-badge');
+            if (badge) badge.textContent = 'Orden: ' + (index + 1);
+        });
+        
+        // Enviar al servidor
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=update_order&orders=${encodeURIComponent(JSON.stringify(orders))}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Error al actualizar orden:', data.error);
+                alert('Error al guardar el orden');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al guardar el orden');
+        });
+    }
+    </script>
 </body>
 </html>

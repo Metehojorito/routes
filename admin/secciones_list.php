@@ -16,6 +16,23 @@ $stmt->execute([$dia_id]);
 $dia = $stmt->fetch();
 if (!$dia) die("Día no encontrado");
 
+// Procesar actualización de orden (AJAX)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_order') {
+    header('Content-Type: application/json');
+    $orders = json_decode($_POST['orders'], true);
+    
+    try {
+        foreach ($orders as $id => $orden) {
+            $stmt = $db->prepare("UPDATE secciones_dia SET orden = ? WHERE id = ?");
+            $stmt->execute([$orden, $id]);
+        }
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 // Procesar crear sección rápida
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nueva_seccion'])) {
     $titulo = trim($_POST['titulo']);
@@ -60,7 +77,14 @@ $secciones = $stmt->fetchAll();
     <title>Secciones - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; }</style>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .dragging { opacity: 0.5; }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+    </style>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
@@ -103,9 +127,12 @@ $secciones = $stmt->fetchAll();
             <!-- Lista de secciones -->
             <div class="bg-white shadow rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-900">
-                        Secciones (<?php echo count($secciones); ?>)
-                    </h2>
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-semibold text-gray-900">
+                            Secciones (<?php echo count($secciones); ?>)
+                        </h2>
+                        <p class="text-sm text-gray-500">Arrastra para reordenar</p>
+                    </div>
                 </div>
                 
                 <?php if (empty($secciones)): ?>
@@ -117,10 +144,13 @@ $secciones = $stmt->fetchAll();
                     <p class="mt-1 text-sm text-gray-500">Las secciones son opcionales. Puedes crear actividades sin secciones.</p>
                 </div>
                 <?php else: ?>
-                <div class="divide-y divide-gray-200">
+                <div id="seccionesContainer" class="divide-y divide-gray-200">
                     <?php foreach ($secciones as $seccion): ?>
-                    <div class="px-6 py-4 hover:bg-gray-50 flex items-center justify-between">
-                        <div class="flex items-center space-x-4">
+                    <div class="seccion-item px-6 py-4 hover:bg-gray-50 flex items-center justify-between" data-id="<?php echo $seccion['id']; ?>">
+                        <div class="flex items-center space-x-4 flex-1">
+                            <div class="drag-handle text-gray-400 hover:text-gray-600">
+                                <span class="material-symbols-outlined">drag_indicator</span>
+                            </div>
                             <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                                 <span class="text-lg font-bold text-purple-600"><?php echo $seccion['orden']; ?></span>
                             </div>
@@ -129,17 +159,19 @@ $secciones = $stmt->fetchAll();
                                 <p class="text-sm text-gray-500"><?php echo $seccion['total_actividades']; ?> actividades</p>
                             </div>
                         </div>
-						<div class="flex items-center gap-2">
-							<a href="seccion_form.php?dia_id=<?php echo $dia_id; ?>&id=<?php echo $seccion['id']; ?>" 
-							   class="text-indigo-600 hover:text-indigo-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-indigo-50 transition">
-								Editar
-							</a>
-							<a href="?dia_id=<?php echo $dia_id; ?>&delete_seccion=<?php echo $seccion['id']; ?>" 
-							   onclick="return confirm('¿Eliminar esta sección? Las actividades NO se eliminarán.')" 
-							   class="text-red-600 hover:text-red-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-red-50 transition">
-								Eliminar
-							</a>
-						</div>
+                        <div class="flex items-center gap-2">
+                            <a href="seccion_form.php?dia_id=<?php echo $dia_id; ?>&id=<?php echo $seccion['id']; ?>" 
+                               class="text-indigo-600 hover:text-indigo-900 p-2 rounded hover:bg-indigo-50 transition"
+                               title="Editar">
+                                <span class="material-symbols-outlined">edit</span>
+                            </a>
+                            <a href="?dia_id=<?php echo $dia_id; ?>&delete_seccion=<?php echo $seccion['id']; ?>" 
+                               onclick="return confirm('¿Eliminar esta sección? Las actividades NO se eliminarán.')" 
+                               class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"
+                               title="Eliminar">
+                                <span class="material-symbols-outlined">delete</span>
+                            </a>
+                        </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -153,5 +185,102 @@ $secciones = $stmt->fetchAll();
             </div>
         </main>
     </div>
+
+    <script>
+    // Sistema de drag & drop para reordenar secciones
+    const container = document.getElementById('seccionesContainer');
+    let draggedElement = null;
+
+    if (container) {
+        const items = container.querySelectorAll('.seccion-item');
+        
+        items.forEach(item => {
+            const handle = item.querySelector('.drag-handle');
+            
+            handle.addEventListener('mousedown', () => {
+                item.draggable = true;
+            });
+            
+            handle.addEventListener('mouseup', () => {
+                item.draggable = false;
+            });
+            
+            item.addEventListener('dragstart', (e) => {
+                draggedElement = item;
+                item.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                item.draggable = false;
+            });
+            
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientY);
+                if (afterElement == null) {
+                    container.appendChild(draggedElement);
+                } else {
+                    container.insertBefore(draggedElement, afterElement);
+                }
+            });
+        });
+        
+        // Guardar orden cuando termina el drag
+        container.addEventListener('dragend', () => {
+            updateOrder();
+        });
+    }
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.seccion-item:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function updateOrder() {
+        const items = container.querySelectorAll('.seccion-item');
+        const orders = {};
+        
+        items.forEach((item, index) => {
+            const id = item.dataset.id;
+            orders[id] = index + 1;
+            
+            // Actualizar el número visual
+            const badge = item.querySelector('.bg-purple-100 span');
+            if (badge) badge.textContent = index + 1;
+        });
+        
+        // Enviar al servidor
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=update_order&orders=${encodeURIComponent(JSON.stringify(orders))}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Error al actualizar orden:', data.error);
+                alert('Error al guardar el orden');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al guardar el orden');
+        });
+    }
+    </script>
 </body>
 </html>

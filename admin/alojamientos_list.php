@@ -1,38 +1,16 @@
 <?php
+// alojamientos_list.php
 require_once 'auth.php';
 require_once '../config/database.php';
 
 $viaje_id = isset($_GET['viaje_id']) ? (int)$_GET['viaje_id'] : 0;
 $db = getDB();
 
-// Obtener viaje
 $stmt = $db->prepare("SELECT * FROM viajes WHERE id = ?");
 $stmt->execute([$viaje_id]);
 $viaje = $stmt->fetch();
 if (!$viaje) die("Viaje no encontrado");
 
-// Procesar cambio de orden
-if (isset($_GET['subir']) || isset($_GET['bajar'])) {
-    $alojamiento_id = isset($_GET['subir']) ? (int)$_GET['subir'] : (int)$_GET['bajar'];
-    $direccion = isset($_GET['subir']) ? 'subir' : 'bajar';
-    
-    // Obtener orden actual
-    $stmt = $db->prepare("SELECT * FROM alojamientos WHERE id = ? AND viaje_id = ?");
-    $stmt->execute([$alojamiento_id, $viaje_id]);
-    $alojamiento = $stmt->fetch();
-    
-    if ($alojamiento) {
-        $orden_actual = 0; // Como no teníamos campo orden, lo añadiremos
-        
-        // Nota: La tabla actual no tiene campo 'orden', pero vamos a trabajar con el orden de inserción
-        // Para un sistema más robusto, deberías añadir el campo 'orden' a la tabla alojamientos
-        
-        header("Location: alojamientos_list.php?viaje_id=$viaje_id");
-        exit;
-    }
-}
-
-// Obtener todos los alojamientos de este viaje
 $stmt = $db->prepare("SELECT * FROM alojamientos WHERE viaje_id = ? ORDER BY id");
 $stmt->execute([$viaje_id]);
 $alojamientos = $stmt->fetchAll();
@@ -97,10 +75,7 @@ $alojamientos = $stmt->fetchAll();
                 </div>
                 <?php else: ?>
                 <div class="divide-y divide-gray-200">
-                    <?php 
-                    $total = count($alojamientos);
-                    foreach ($alojamientos as $index => $alojamiento): 
-                    ?>
+                    <?php foreach ($alojamientos as $alojamiento): ?>
                     <div class="px-6 py-6 hover:bg-gray-50">
                         <div class="flex items-start justify-between">
                             <div class="flex items-start space-x-4 flex-1">
@@ -141,13 +116,15 @@ $alojamientos = $stmt->fetchAll();
                             </div>
                             <div class="flex flex-col gap-2 ml-4">
                                 <a href="alojamiento_form.php?id=<?php echo $alojamiento['id']; ?>&viaje_id=<?php echo $viaje_id; ?>" 
-                                   class="text-indigo-600 hover:text-indigo-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-indigo-50 transition text-center">
-                                    Editar
+                                   class="text-indigo-600 hover:text-indigo-900 p-2 rounded hover:bg-indigo-50 transition"
+                                   title="Editar">
+                                    <span class="material-symbols-outlined">edit</span>
                                 </a>
                                 <a href="alojamiento_delete.php?id=<?php echo $alojamiento['id']; ?>&viaje_id=<?php echo $viaje_id; ?>" 
                                    onclick="return confirm('¿Eliminar este alojamiento?')" 
-                                   class="text-red-600 hover:text-red-900 text-sm font-medium px-3 py-1.5 rounded hover:bg-red-50 transition text-center">
-                                    Eliminar
+                                   class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"
+                                   title="Eliminar">
+                                    <span class="material-symbols-outlined">delete</span>
                                 </a>
                             </div>
                         </div>

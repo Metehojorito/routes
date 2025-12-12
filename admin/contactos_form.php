@@ -300,7 +300,7 @@ if (isset($_GET['delete'])) {
             restaurante: ['restaurant', 'local_cafe', 'local_bar', 'local_dining', 'lunch_dining', 'dinner_dining', 'breakfast_dining', 'ramen_dining', 'local_pizza', 'fastfood', 'coffee', 'liquor', 'wine_bar'],
             compras: ['shopping_cart', 'shopping_bag', 'storefront', 'local_mall', 'local_grocery_store', 'local_convenience_store', 'sell', 'loyalty', 'redeem'],
             entretenimiento: ['theater_comedy', 'sports_esports', 'sports_soccer', 'casino', 'sports_bar', 'celebration', 'attractions', 'festival', 'nightlife', 'pool', 'spa'],
-            naturaleza: ['park', 'forest', 'landscape', 'terrain', 'water', 'beach_access', 'sailing', 'surfing', 'hiking', 'nature', 'nature_people'],
+            naturaleza: ['park', 'forest', 'landscape', 'terrain', 'water', 'beach_access', 'sailing', 'surfing', 'directions_walk', 'hiking', 'nature', 'nature_people'],
             ubicacion: ['location_on', 'place', 'map', 'my_location', 'near_me', 'explore', 'navigation', 'pin_drop', 'add_location', 'edit_location', 'gps_fixed', 'gps_not_fixed'],
             informacion: ['info', 'info_outline', 'help', 'help_outline', 'announcement', 'campaign', 'notifications', 'notifications_active'],
             personas: ['person', 'people', 'group', 'groups', 'family_restroom', 'elderly', 'accessible', 'child_care', 'face', 'badge', 'supervisor_account'],
