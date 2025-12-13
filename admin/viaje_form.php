@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $file_extension = strtolower(pathinfo($_FILES['pin_mapa']['name'], PATHINFO_EXTENSION));
-                $allowed_extensions = ['gif', 'png'];
+                $allowed_extensions = ['gif', 'png', 'webp'];
                 
                 if (in_array($file_extension, $allowed_extensions)) {
                     // Eliminar pin anterior si existe
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $error = "Error al subir el pin del mapa";
                     }
                 } else {
-                    $error = "Formato de pin no válido. Usa GIF o PNG";
+                    $error = "Formato de pin no válido. Usa GIF, PNG o WEBP";
                 }
             }
             
@@ -297,7 +297,7 @@ if (isset($_GET['success'])) {
                     </div>
                     <?php endif; ?>
                     
-                    <input type="file" name="pin_mapa" id="pin_mapa" accept="image/gif,image/png"
+                    <input type="file" name="pin_mapa" id="pin_mapa" accept="image/gif,image/png,image/webp"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <p class="mt-1 text-sm text-gray-500">
                         Solo GIF o PNG. Este pin aparecerá en los mapas de Google Maps del viaje. 
@@ -312,7 +312,7 @@ if (isset($_GET['success'])) {
                     <div class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                         <p class="text-sm text-blue-800">
                             <strong>💡 Recomendación:</strong> El pin debe ser una imagen pequeña (40x40px recomendado) 
-                            en formato GIF animado o PNG con transparencia para mejores resultados.
+                            en formato GIF animado, WEBP o PNG con transparencia para mejores resultados.
                         </p>
                     </div>
                 </div>
