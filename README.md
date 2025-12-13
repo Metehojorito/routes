@@ -5,6 +5,7 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![PHP](https://img.shields.io/badge/PHP-7.4+-blue.svg)
 ![MySQL](https://img.shields.io/badge/MySQL-5.7+-orange.svg)
+![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-green.svg)
 
 ## ✨ Características
 
@@ -12,7 +13,9 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 
 - **Gestión Completa de Viajes**: Crea y administra múltiples viajes con información detallada
 - **Itinerarios por Días**: Organiza actividades día a día con secciones personalizables
-- **Mapas Interactivos**: Integración con Google Maps para ubicaciones precisas
+- **🆕 Mapas con Leaflet + OpenStreetMap**: Sin API key, 100% gratuito, más rápido
+- **📍 Location Picker Interactivo**: Selecciona ubicaciones con un click en el mapa
+- **🎨 Pines Personalizados**: Sube tu propio pin (GIF/PNG/WebP) para cada viaje
 - **Diseño Responsive**: Interfaz optimizada para móviles y tablets
 - **Modo Oscuro/Claro**: Tema adaptable según preferencias del usuario
 - **Personalización Visual**: Paleta de colores configurable por viaje con 8 plantillas predefinidas
@@ -25,16 +28,18 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 - Menú lateral con información de alojamiento y contactos de emergencia
 - Listado de días del viaje con información detallada
 - Vista de día individual con:
-  - Mapa interactivo con marcadores de ubicaciones
+  - **🗺️ Mapa interactivo Leaflet** con marcadores de ubicaciones
+  - Pines personalizados por viaje
   - Actividades organizadas por secciones (Mañana, Tarde, Noche, etc.)
   - Detalles adicionales (horarios, precios, confirmaciones)
-  - Enlaces directos a Google Maps
+  - Enlaces directos a Google Maps para navegación
 
 ### 🔐 Panel de Administración
 
 #### Gestión de Viajes
 - Crear/editar/eliminar viajes
 - Subida de imagen de portada
+- **🆕 Subida de pin personalizado** para mapas (GIF/PNG/WebP)
 - Configuración de fechas y slug único
 - Personalización de colores con 8 plantillas predefinidas:
   - 🏖️ Tropical (Cian y Dorado)
@@ -48,7 +53,8 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 
 #### Gestión de Días
 - Crear días del viaje con título y descripción
-- Configurar centro y zoom del mapa
+- **🆕 Location Picker**: Selecciona el centro del mapa con un click
+- Configurar zoom del mapa
 - Ordenar días mediante drag & drop
 - Vista previa de cada día
 
@@ -58,14 +64,14 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 
 #### Gestión de Actividades
 - Crear actividades con icono y descripción
-- Asignar coordenadas GPS para visualizar en mapa
+- **🆕 Location Picker**: Selecciona ubicación en mapa interactivo
 - Agregar detalles adicionales (horarios, precios, etc.)
 - Selector visual de iconos Material Symbols
 - Mover actividades entre secciones con drag & drop
 - Reordenar dentro de cada sección
 
 #### Información Adicional
-- **Alojamientos**: Guarda información de hoteles/apartamentos con ubicación
+- **Alojamientos**: Guarda información de hoteles/apartamentos con **Location Picker**
 - **Contactos de Emergencia**: Números importantes (112, policía, embajada, hotel)
 
 ## 🛠️ Tecnologías Utilizadas
@@ -80,7 +86,8 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 - **TailwindCSS**: Framework CSS utility-first
 - **JavaScript Vanilla**: Interactividad sin dependencias
 - **Material Symbols**: Librería de iconos de Google
-- **Google Maps API**: Integración de mapas
+- **🆕 Leaflet 1.9.4**: Mapas interactivos sin API key
+- **🆕 OpenStreetMap**: Tiles de mapa gratuitos
 
 ### Características Técnicas
 - **Drag & Drop nativo HTML5**: Sin librerías externas
@@ -88,6 +95,7 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 - **PWA-ready**: Optimizado para funcionar como app
 - **AJAX**: Actualizaciones sin recargar página
 - **Session Management**: Sistema de sesiones PHP
+- **🆕 Location Picker**: Componente reutilizable para selección de ubicaciones
 
 ## 📋 Requisitos del Sistema
 
@@ -133,16 +141,12 @@ define('DB_USER', 'tu_usuario');
 define('DB_PASS', 'tu_contraseña');
 ```
 
-### 4. Configurar Google Maps API
+### 4. 🆕 Migración: Pin Personalizado (Nuevo)
 
-1. Obtén una API Key de [Google Cloud Console](https://console.cloud.google.com/)
-2. Habilita "Maps JavaScript API"
-3. Inserta la key en la tabla `configuracion`:
+Si actualizas desde una versión anterior, ejecuta:
 
-```sql
-INSERT INTO configuracion (clave, valor) 
-VALUES ('google_maps_api_key', 'TU_API_KEY_AQUI')
-ON DUPLICATE KEY UPDATE valor = 'TU_API_KEY_AQUI';
+```bash
+mysql -u root -p gestor_viajes < add_pin_mapa_field.sql
 ```
 
 ### 5. Configurar permisos
@@ -152,6 +156,9 @@ ON DUPLICATE KEY UPDATE valor = 'TU_API_KEY_AQUI';
 mkdir -p images
 chmod 755 images
 chown www-data:www-data images  # En producción
+
+# 🆕 Las carpetas de pines se crean automáticamente
+# images/[viaje_id]/maps/ se genera al subir el primer pin
 ```
 
 ### 6. Acceder al sistema
@@ -170,7 +177,8 @@ gestor-viajes/
 ├── admin/                    # Panel de administración
 │   ├── js/                   # JavaScript del admin
 │   │   ├── icons-library.js  # Librería de iconos
-│   │   └── icon-picker.js    # Componente selector de iconos
+│   │   ├── icon-picker.js    # Selector de iconos
+│   │   └── location-picker.js # 🆕 Selector de ubicación con mapa
 │   ├── partials/             # Componentes reutilizables
 │   │   └── actividad_item.php
 │   ├── index.php             # Dashboard principal
@@ -183,11 +191,13 @@ gestor-viajes/
 │   └── database.php          # Configuración de BD
 ├── images/                   # Imágenes subidas (auto-creada)
 │   └── [viaje_id]/
-│       └── portada/
+│       ├── portada/          # Imágenes de portada
+│       └── maps/             # 🆕 Pines personalizados
 ├── index.php                 # Portada pública
 ├── menu.php                  # Menú de días del viaje
-├── dia.php                   # Vista de día individual
+├── dia.php                   # Vista de día individual (Leaflet)
 ├── gestor_viajes.sql         # Schema de la base de datos
+├── add_pin_mapa_field.sql    # 🆕 Migración para pines
 └── README.md                 # Este archivo
 ```
 
@@ -203,6 +213,15 @@ Cada viaje puede tener su propia paleta de colores. Se configuran 6 colores:
 - **Card Light**: Tarjetas en modo claro
 - **Card Dark**: Tarjetas en modo oscuro
 
+### 🆕 Pines Personalizados
+
+Cada viaje puede tener su propio pin para los mapas:
+
+1. **Formatos soportados**: GIF (animado), PNG, WebP
+2. **Tamaño recomendado**: 40x40px
+3. **Ubicación**: `images/[viaje_id]/maps/pin.[gif|png|webp]`
+4. **Fallback**: Si no hay pin personalizado, usa `images/pin.gif`
+
 ### Iconos Material Symbols
 
 El sistema incluye más de 150 iconos organizados en categorías:
@@ -217,6 +236,72 @@ El sistema incluye más de 150 iconos organizados en categorías:
 - Varios
 
 Para agregar nuevos iconos, edita `admin/js/icons-library.js`.
+
+## 🗺️ Mapas: Leaflet vs Google Maps
+
+El proyecto incluye **dos versiones** de mapas:
+
+### ✅ Leaflet + OpenStreetMap (Recomendado - Por Defecto)
+
+**Archivo**: `dia.php`
+
+**Ventajas**:
+- ✅ **100% GRATIS** - Sin API keys ni límites
+- ✅ **Sin configuración** - Funciona inmediatamente
+- ✅ **Más rápido** - Librería 62% más ligera
+- ✅ **Soporta WebP** - Para pines personalizados
+- ✅ **Múltiples estilos** - 5+ estilos de mapa incluidos
+- ✅ **Privacidad** - Sin tracking de Google
+
+**Estilos disponibles** (cambiar en línea ~226 de dia.php):
+```javascript
+// OpenStreetMap (por defecto - claro)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+
+// CartoDB Dark Matter (modo oscuro elegante)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png')
+
+// CartoDB Positron (minimalista claro)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png')
+```
+
+### 📍 Location Picker (Admin)
+
+**Archivo**: `admin/js/location-picker.js`
+
+Selector de ubicación interactivo para formularios del admin:
+
+**Características**:
+- 🗺️ Mapa interactivo en formularios
+- 🎯 Click para seleccionar ubicación
+- 🔄 Sincronización bidireccional (mapa ↔ inputs)
+- 🎯 Arrastrar marcador para ajustar
+- ✅ Sin API key necesaria
+
+**Se usa en**:
+- `actividad_form.php` - Ubicar actividades
+- `dia_form.php` - Definir centro del mapa
+- `alojamiento_form.php` - Ubicar hoteles
+
+Ver `GUIA_LOCATION_PICKER.md` para implementación completa.
+
+### ⚠️ Google Maps (Alternativo)
+
+Si prefieres Google Maps, sigue estos pasos:
+
+1. **Obtén API Key**: [Google Cloud Console](https://console.cloud.google.com/)
+2. **Habilita**: "Maps JavaScript API"
+3. **Configura** en la base de datos:
+
+```sql
+INSERT INTO configuracion (clave, valor) 
+VALUES ('google_maps_api_key', 'TU_API_KEY_AQUI')
+ON DUPLICATE KEY UPDATE valor = 'TU_API_KEY_AQUI';
+```
+
+4. **Reemplaza** `dia.php` por la versión con Google Maps (no incluida por defecto)
+
+**Nota**: Google Maps requiere facturación después de cierto uso. Leaflet es completamente gratis.
 
 ## 🔒 Seguridad
 
@@ -253,10 +338,33 @@ chown www-data:www-data images -R
 ```
 
 ### Mapas no se muestran
-**Solución**: 
-1. Verifica que la API Key de Google Maps esté configurada
+
+**Con Leaflet (por defecto)**:
+- ✅ No necesita configuración, debería funcionar inmediatamente
+- Verifica la consola del navegador para errores de JavaScript
+
+**Con Google Maps (si lo usas)**:
+1. Verifica que la API Key esté configurada en la BD
 2. Comprueba que la API esté habilitada en Google Cloud Console
 3. Revisa la consola del navegador para errores
+
+### 🆕 Location Picker no funciona
+
+1. Verifica que `location-picker.js` esté en `/admin/js/`
+2. Comprueba que Leaflet CSS y JS estén cargados
+3. Revisa la consola del navegador para errores
+4. Asegúrate de que los inputs tengan `id="lat"` e `id="lng"`
+
+### 🆕 Pin personalizado no aparece
+
+```bash
+# Verificar permisos
+ls -la images/[viaje_id]/maps/
+
+# Corregir permisos
+chmod 755 images/[viaje_id]/maps/
+chmod 644 images/[viaje_id]/maps/pin.*
+```
 
 ### Drag & Drop no funciona en móvil
 **Nota**: El drag & drop actual solo funciona con mouse. Para móviles se necesitaría implementar eventos touch adicionales.
@@ -268,22 +376,24 @@ chown www-data:www-data images -R
 1. Accede al panel admin y haz login
 2. Clic en "+ Nuevo Viaje"
 3. Rellena información básica y sube una imagen de portada
-4. Elige una plantilla de colores o personaliza manualmente
-5. Guarda el viaje
+4. **🆕 (Opcional)** Sube un pin personalizado para los mapas
+5. Elige una plantilla de colores o personaliza manualmente
+6. Guarda el viaje
 
 ### Agregar días al viaje
 
 1. Desde el dashboard, clic en "Días" del viaje
 2. "+ Nuevo Día" y configura fecha, título
-3. Define el centro del mapa (lat/lng) y zoom
-4. Opcionalmente crea secciones para organizar el día
+3. **🆕 Usa el Location Picker**: Haz click en el mapa para definir el centro
+4. Define el zoom del mapa
+5. Opcionalmente crea secciones para organizar el día
 
 ### Agregar actividades
 
 1. Entra en "Actividades" del día
 2. "+ Nueva Actividad"
 3. Selecciona icono, título, descripción
-4. Añade coordenadas GPS para mostrar en mapa
+4. **🆕 Usa el Location Picker**: Haz click en el mapa o arrastra el marcador
 5. Agrega detalles adicionales (horarios, precios)
 
 ### Publicar el viaje
@@ -292,6 +402,35 @@ El viaje es accesible públicamente en:
 ```
 http://tu-dominio.com/?viaje=slug-del-viaje
 ```
+
+## 🆕 Novedades en v2.0
+
+### ✨ Características Nuevas
+
+#### 🗺️ Migración a Leaflet + OpenStreetMap
+- **Sin API key**: Elimina dependencia de Google Maps
+- **100% gratuito**: Sin límites de uso
+- **Más rápido**: Librería 62% más ligera
+- **Múltiples estilos**: 5+ estilos de mapa disponibles
+- **Mejor privacidad**: Sin tracking de terceros
+
+#### 📍 Location Picker Interactivo
+- **Selector visual**: Click en mapa para seleccionar ubicación
+- **Drag & drop**: Arrastra marcador para ajustar
+- **Sincronización**: Mapa ↔ Inputs bidireccional
+- **3 formularios**: Actividades, días y alojamientos
+
+#### 🎨 Pines Personalizados
+- **Por viaje**: Cada viaje puede tener su pin único
+- **Formatos**: GIF (animado), PNG, WebP
+- **Fácil**: Sube desde el formulario de viaje
+- **Automático**: Se usa en todos los mapas del viaje
+
+### 📚 Documentación Adicional
+
+- **IMPLEMENTACION_PIN_MAPA.md** - Guía de pines personalizados
+- **COMPARACION_MAPAS.md** - Comparativa Leaflet vs Google Maps
+- **GUIA_LOCATION_PICKER.md** - Implementación del selector de ubicación
 
 ## 🤝 Contribuciones
 
@@ -313,7 +452,8 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ## 🙏 Agradecimientos
 
-- [Google Maps API](https://developers.google.com/maps) - Mapas interactivos
+- [Leaflet](https://leafletjs.com/) - Mapas interactivos sin API key
+- [OpenStreetMap](https://www.openstreetmap.org/) - Datos cartográficos libres
 - [Material Symbols](https://fonts.google.com/icons) - Iconos
 - [TailwindCSS](https://tailwindcss.com/) - Framework CSS
 - [PHP](https://www.php.net/) - Lenguaje backend
@@ -321,9 +461,23 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 ## 📧 Contacto
 
 Para preguntas o sugerencias:
-- Email: tu-email@ejemplo.com
 - Issues: [GitHub Issues](https://github.com/Metehojorito/routes/issues)
+
+## 🎯 Roadmap
+
+### Próximas características:
+- [ ] Exportar itinerario a PDF
+- [ ] Compartir viaje mediante enlace
+- [ ] Modo offline para la app
+- [ ] Multi-idioma
+- [ ] Importar desde Google Maps
+- [ ] API REST para integración con apps móviles
+- [ ] Calculadora de presupuesto
+- [ ] Galería de fotos por día
 
 ---
 
 ⭐ Si te gusta este proyecto, dale una estrella en GitHub!
+
+**Versión actual**: 2.0.0  
+**Última actualización**: Diciembre 2025
