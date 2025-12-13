@@ -53,7 +53,11 @@ $fecha = new DateTime($dia['fecha']);
 $mes = $meses[(int)$fecha->format('n')];
 $dia_semana = $dias_semana[(int)$fecha->format('w')];
 
-$google_maps_key = getConfig('google_maps_api_key', '');
+// Determinar qué pin usar: personalizado del viaje o el por defecto
+$pin_url = 'images/pin.gif'; // Pin por defecto
+if (!empty($viaje['pin_mapa'])) {
+    $pin_url = $viaje['pin_mapa']; // Pin personalizado del viaje
+}
 ?>
 <!DOCTYPE html>
 <html class="dark" lang="es">
@@ -64,10 +68,31 @@ $google_maps_key = getConfig('google_maps_api_key', '');
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+    
     <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     body, html { height: 100dvh; margin: 0; padding: 0; overflow: hidden; }
+    
+    /* Estilos específicos para Leaflet */
+    #map { height: 100%; width: 100%; }
+    .leaflet-container { font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    /* Estilo para el popup de Leaflet en modo oscuro */
+    .dark .leaflet-popup-content-wrapper,
+    .dark .leaflet-popup-tip {
+        background-color: #1c2c3a;
+        color: #ffffff;
+    }
+    .dark .leaflet-popup-close-button {
+        color: #ffffff !important;
+    }
     </style>
+    
     <script>
     tailwind.config = {
         darkMode: "class",
@@ -140,7 +165,7 @@ $google_maps_key = getConfig('google_maps_api_key', '');
                             <?php foreach ($actividades_por_seccion[$seccion['id']] as $actividad): 
                                 $tiene_detalles = !empty($detalles_por_actividad[$actividad['id']]);
                             ?>
-                            <div class="flex min-h-[72px] cursor-pointer <?php echo $tiene_detalles ? 'flex-col gap-3' : 'flex-col gap-4'; ?> rounded-lg bg-card-light p-3 shadow-sm dark:bg-card-dark item-daily" data-lat="<?php echo $actividad['lat']; ?>" data-lng="<?php echo $actividad['lng']; ?>">
+                            <div class="flex min-h-[72px] cursor-pointer <?php echo $tiene_detalles ? 'flex-col gap-3' : 'flex-col gap-4'; ?> rounded-lg bg-card-light p-3 shadow-sm dark:bg-card-dark item-daily" data-lat="<?php echo $actividad['lat']; ?>" data-lng="<?php echo $actividad['lng']; ?>" data-titulo="<?php echo htmlspecialchars($actividad['titulo']); ?>">
                                 <div class="flex items-start gap-4 w-full">
                                     <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-<?php echo htmlspecialchars($actividad['color_categoria']); ?>/20 text-<?php echo htmlspecialchars($actividad['color_categoria']); ?>">
                                         <span class="material-symbols-outlined text-2xl"><?php echo htmlspecialchars($actividad['icono']); ?></span>
@@ -183,7 +208,7 @@ $google_maps_key = getConfig('google_maps_api_key', '');
                     <?php foreach ($actividades as $actividad): 
                         $tiene_detalles = !empty($detalles_por_actividad[$actividad['id']]);
                     ?>
-                    <div class="flex min-h-[72px] cursor-pointer <?php echo $tiene_detalles ? 'flex-col gap-3' : 'flex-col gap-4'; ?> rounded-lg bg-card-light p-3 shadow-sm dark:bg-card-dark item-daily" data-lat="<?php echo $actividad['lat']; ?>" data-lng="<?php echo $actividad['lng']; ?>">
+                    <div class="flex min-h-[72px] cursor-pointer <?php echo $tiene_detalles ? 'flex-col gap-3' : 'flex-col gap-4'; ?> rounded-lg bg-card-light p-3 shadow-sm dark:bg-card-dark item-daily" data-lat="<?php echo $actividad['lat']; ?>" data-lng="<?php echo $actividad['lng']; ?>" data-titulo="<?php echo htmlspecialchars($actividad['titulo']); ?>">
                         <div class="flex items-start gap-4">
                             <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-<?php echo htmlspecialchars($actividad['color_categoria']); ?>/20 text-<?php echo htmlspecialchars($actividad['color_categoria']); ?>">
                                 <span class="material-symbols-outlined text-2xl"><?php echo htmlspecialchars($actividad['icono']); ?></span>
@@ -219,7 +244,13 @@ $google_maps_key = getConfig('google_maps_api_key', '');
         </div>
     </div>
     
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
     <script>
+    // Navegación entre días
     document.getElementById("btnBack").addEventListener("click", () => {
         <?php if ($dia_anterior): ?>
         window.location.href = "dia.php?dia=<?php echo $dia_anterior['numero_dia']; ?>";
@@ -234,47 +265,96 @@ $google_maps_key = getConfig('google_maps_api_key', '');
     });
     <?php endif; ?>
     
+    // Inicializar mapa con Leaflet
     let map, markers = {};
     
-    function initMap() {
-        const center = { lat: <?php echo $dia['centro_mapa_lat']; ?>, lng: <?php echo $dia['centro_mapa_lng']; ?> };
+    // Coordenadas del centro del mapa
+    const center = [<?php echo $dia['centro_mapa_lat']; ?>, <?php echo $dia['centro_mapa_lng']; ?>];
+    const zoom = <?php echo $dia['zoom_mapa']; ?>;
+    
+    // Crear el mapa
+    map = L.map('map', {
+        center: center,
+        zoom: zoom,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        dragging: true,
+        touchZoom: true,
+        doubleClickZoom: true
+    });
+    
+    // Añadir capa de tiles de OpenStreetMap
+    // Puedes cambiar el estilo aquí:
+    // - OpenStreetMap estándar (claro)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Estilos alternativos (descomenta el que prefieras):
+    
+    // CartoDB Dark Matter (oscuro elegante)
+    /*
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 19
+    }).addTo(map);
+    */
+    
+    // CartoDB Positron (claro minimalista)
+    /*
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 19
+    }).addTo(map);
+    */
+    
+    // Crear icono personalizado
+    const customIcon = L.icon({
+        iconUrl: '<?php echo htmlspecialchars($pin_url); ?>',
+        iconSize: [40, 40],        // Tamaño del icono
+        iconAnchor: [20, 40],      // Punto del icono que corresponde a la posición del marcador
+        popupAnchor: [0, -40]      // Punto desde donde se abre el popup relativo al iconAnchor
+    });
+    
+    // Añadir marcadores desde las actividades
+    const items = document.querySelectorAll(".item-daily");
+    items.forEach((div, index) => {
+        const lat = parseFloat(div.dataset.lat);
+        const lng = parseFloat(div.dataset.lng);
+        const titulo = div.dataset.titulo || `Punto ${index + 1}`;
         
-        map = new google.maps.Map(document.getElementById("map"), {
-            center,
-            zoom: <?php echo $dia['zoom_mapa']; ?>,
-            mapId: "DEMO_MAP_ID",
-            gestureHandling: "greedy"
-        });
-        
-        const customIcon = {
-            url: "images/pin.gif",
-            scaledSize: new google.maps.Size(40, 40),
-            anchor: new google.maps.Point(20, 40)
-        };
-        
-        const items = document.querySelectorAll(".item-daily");
-        items.forEach((div, index) => {
-            const lat = parseFloat(div.dataset.lat);
-            const lng = parseFloat(div.dataset.lng);
+        if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+            // Crear marcador
+            const marker = L.marker([lat, lng], { icon: customIcon })
+                .addTo(map)
+                .bindPopup(titulo);
             
-            if (lat && lng) {
-                const marker = new google.maps.Marker({
-                    position: { lat, lng },
-                    map,
-                    title: `Punto ${index + 1}`,
-                    icon: customIcon
+            markers[index] = marker;
+            
+            // Al hacer click en una actividad, centrar el mapa
+            div.addEventListener("click", () => {
+                // Primero cerrar cualquier popup abierto
+                map.closePopup();
+                
+                // Centrar el mapa con animación suave
+                map.flyTo([lat, lng], 16, {
+                    duration: 0.8,
+                    easeLinearity: 0.25
                 });
                 
-                markers[index] = marker;
-                
-                div.addEventListener("click", () => {
-                    map.panTo(marker.getPosition());
-                    map.setZoom(16);
-                });
-            }
-        });
-    }
+                // Abrir popup después de la animación
+                setTimeout(() => {
+                    marker.openPopup();
+                }, 500);
+            });
+        }
+    });
+    
+    // Ajustar el tamaño del mapa después de cargarlo
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
     </script>
-    <script async src="https://maps.googleapis.com/maps/api/js?key=<?php echo htmlspecialchars($google_maps_key); ?>&loading=async&callback=initMap"></script>
 </body>
 </html>

@@ -76,7 +76,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title><?php echo $id > 0 ? 'Editar' : 'Nuevo'; ?> Alojamiento - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; }</style>
+	<!-- Leaflet CSS -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+		  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+		  crossorigin=""/>
+
+	<style>
+	body { font-family: 'Inter', sans-serif; }
+	
+	/* Estilos para el mapa */
+	#location-map { 
+		height: 320px;
+		border-radius: 0.5rem;
+	}
+	.leaflet-container {
+		font-family: 'Inter', sans-serif;
+	}
+	</style>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
@@ -132,23 +148,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="border-t pt-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Ubicación (Opcional)</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Latitud</label>
-                            <input type="number" name="lat" value="<?php echo htmlspecialchars($alojamiento['lat'] ?? ''); ?>" 
-                                   step="0.00000001" placeholder="51.9190"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Longitud</label>
-                            <input type="number" name="lng" value="<?php echo htmlspecialchars($alojamiento['lng'] ?? ''); ?>" 
-                                   step="0.00000001" placeholder="4.4887"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    <p class="mt-2 text-sm text-gray-500">Las coordenadas permiten mostrar el alojamiento en Google Maps</p>
-                </div>
+					<h3 class="text-lg font-semibold text-gray-900 mb-4">📍 Ubicación (Opcional)</h3>
+					
+					<div class="grid grid-cols-2 gap-4 mb-4">
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-2">Latitud</label>
+							<input type="number" id="lat" name="lat" 
+								   value="<?php echo htmlspecialchars($alojamiento['lat'] ?? ''); ?>" 
+								   step="0.00000001" placeholder="51.9190"
+								   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+						</div>
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-2">Longitud</label>
+							<input type="number" id="lng" name="lng" 
+								   value="<?php echo htmlspecialchars($alojamiento['lng'] ?? ''); ?>" 
+								   step="0.00000001" placeholder="4.4887"
+								   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+						</div>
+					</div>
+					
+					<!-- Mapa interactivo -->
+					<div class="mb-4">
+						<label class="block text-sm font-medium text-gray-700 mb-2">Seleccionar ubicación del alojamiento</label>
+						<div id="location-map" class="w-full h-80 rounded-lg border-2 border-gray-300 overflow-hidden"></div>
+					</div>
+					
+					<div class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+						<p class="text-sm text-blue-800">
+							<strong>💡 Búsqueda rápida:</strong> Introduce la dirección en Google Maps, copia las coordenadas 
+							(click derecho en el mapa) y pégalas aquí, o simplemente busca el hotel en el mapa y haz click.
+						</p>
+					</div>
+				</div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <a href="alojamientos_list.php?viaje_id=<?php echo $viaje_id; ?>" 
@@ -162,5 +193,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </main>
     </div>
+	
+	<!-- Leaflet JavaScript -->
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+			integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+			crossorigin=""></script>
+
+	<!-- Location Picker Component -->
+	<script src="js/location-picker.js"></script>
+	
+	<script>
+	// Inicializar el selector de ubicación
+	document.addEventListener('DOMContentLoaded', () => {
+		const picker = createLocationPicker('location-map', 'lat', 'lng', {
+			initialLat: 51.9190,
+			initialLng: 4.4887,
+			initialZoom: 14
+		});
+	});
+	</script>
 </body>
 </html>

@@ -80,7 +80,22 @@ if (isset($_GET['success'])) $success = "Día creado correctamente";
     <title><?php echo $id > 0 ? 'Editar' : 'Nuevo'; ?> Día - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; }</style>
+	<!-- Leaflet CSS -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+		  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+		  crossorigin=""/>
+    <style>
+		body { font-family: 'Inter', sans-serif; }
+	
+	/* Estilos para el mapa */
+	#location-map { 
+		height: 320px;
+		border-radius: 0.5rem;
+	}
+	.leaflet-container {
+		font-family: 'Inter', sans-serif;
+	}
+	</style>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
@@ -142,44 +157,56 @@ if (isset($_GET['success'])) $success = "Día creado correctamente";
                               placeholder="Descripción opcional del día"
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo htmlspecialchars($dia['descripcion'] ?? ''); ?></textarea>
                 </div>
-
-                <div class="border-t pt-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Configuración del Mapa</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Latitud Centro *</label>
-                            <input type="number" name="centro_mapa_lat" value="<?php echo htmlspecialchars($dia['centro_mapa_lat'] ?? ''); ?>" 
-                                   step="0.00000001" required placeholder="51.8143"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Longitud Centro *</label>
-                            <input type="number" name="centro_mapa_lng" value="<?php echo htmlspecialchars($dia['centro_mapa_lng'] ?? ''); ?>" 
-                                   step="0.00000001" required placeholder="4.6650"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Zoom del Mapa</label>
-                        <input type="number" name="zoom_mapa" value="<?php echo htmlspecialchars($dia['zoom_mapa'] ?? 14); ?>" 
-                               min="1" max="20"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <p class="mt-1 text-sm text-gray-500">Entre 1 (muy alejado) y 20 (muy cerca). Recomendado: 12-16</p>
-                    </div>
-                    <div class="mt-4">
+				
+				<div class="border-t pt-6">
+					<h3 class="text-lg font-semibold text-gray-900 mb-4">🗺️ Configuración del Mapa</h3>
+					
+					<div class="grid grid-cols-2 gap-4 mb-4">
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-2">Latitud Centro *</label>
+							<input type="number" id="centro_mapa_lat" name="centro_mapa_lat" 
+								   value="<?php echo htmlspecialchars($dia['centro_mapa_lat'] ?? ''); ?>" 
+								   step="0.00000001" required placeholder="51.8143"
+								   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+						</div>
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-2">Longitud Centro *</label>
+							<input type="number" id="centro_mapa_lng" name="centro_mapa_lng" 
+								   value="<?php echo htmlspecialchars($dia['centro_mapa_lng'] ?? ''); ?>" 
+								   step="0.00000001" required placeholder="4.6650"
+								   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+						</div>
+					</div>
+					
+					<!-- Mapa interactivo -->
+					<div class="mb-4">
+						<label class="block text-sm font-medium text-gray-700 mb-2">Seleccionar centro del mapa</label>
+						<div id="location-map" class="w-full h-80 rounded-lg border-2 border-gray-300 overflow-hidden"></div>
+					</div>
+					
+					<div class="mt-4">
+						<label class="block text-sm font-medium text-gray-700 mb-2">Zoom del Mapa</label>
+						<input type="number" name="zoom_mapa" value="<?php echo htmlspecialchars($dia['zoom_mapa'] ?? 14); ?>" 
+							   min="1" max="20"
+							   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+						<p class="mt-1 text-sm text-gray-500">Entre 1 (muy alejado) y 20 (muy cerca). Recomendado: 12-16</p>
+					</div>
+					
+					<div class="mt-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Orden</label>
                         <input type="number" name="orden" value="<?php echo htmlspecialchars($dia['orden'] ?? $dia['numero_dia'] ?? 1); ?>" 
                                min="0"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <p class="mt-1 text-sm text-gray-500">Orden de aparición en la lista. Por defecto, igual al número de día.</p>
                     </div>
-                    <div class="mt-4 p-4 bg-blue-50 rounded-lg">
-                        <p class="text-sm text-blue-800">
-                            <strong>Consejo:</strong> Para obtener coordenadas, ve a Google Maps, haz click derecho en el lugar 
-                            y selecciona las coordenadas (primer y segundo número).
-                        </p>
-                    </div>
-                </div>
+					
+					<div class="mt-4 p-4 bg-blue-50 rounded-lg">
+						<p class="text-sm text-blue-800">
+							<strong>💡 Consejo:</strong> Haz click en el centro aproximado del área que quieres mostrar. 
+							Las actividades aparecerán como pines en este mapa.
+						</p>
+					</div>
+				</div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <a href="dias_list.php?viaje_id=<?php echo $viaje_id; ?>" 
@@ -193,5 +220,24 @@ if (isset($_GET['success'])) $success = "Día creado correctamente";
             </form>
         </main>
     </div>
+	
+	<!-- Leaflet JavaScript -->
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+			integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+			crossorigin=""></script>
+
+	<!-- Location Picker Component -->
+	<script src="js/location-picker.js"></script>
+	
+	<script>
+	// Inicializar el selector de ubicación
+	document.addEventListener('DOMContentLoaded', () => {
+		const picker = createLocationPicker('location-map', 'centro_mapa_lat', 'centro_mapa_lng', {
+			initialLat: 51.8143,
+			initialLng: 4.6650,
+			initialZoom: 13
+		});
+	});
+	</script>
 </body>
 </html>

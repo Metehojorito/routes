@@ -114,11 +114,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+	<!-- Leaflet CSS -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+      crossorigin=""/>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .icon-option:hover { transform: scale(1.1); }
         .icon-option.selected { background: #3b82f6; color: white; }
+		/* Estilos para el mapa */
+		#location-map { 
+			height: 320px;
+			border-radius: 0.5rem;
+		}
+		.leaflet-container {
+			font-family: 'Inter', sans-serif;
+		}
     </style>
 </head>
 <body class="bg-gray-50">
@@ -221,24 +233,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="bg-white shadow rounded-lg p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Ubicación en Mapa</h2>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Latitud</label>
-                            <input type="number" name="lat" value="<?php echo htmlspecialchars($actividad['lat'] ?? ''); ?>" 
-                                   step="0.00000001" placeholder="51.8143"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Longitud</label>
-                            <input type="number" name="lng" value="<?php echo htmlspecialchars($actividad['lng'] ?? ''); ?>" 
-                                   step="0.00000001" placeholder="4.6650"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    <p class="mt-2 text-sm text-gray-500">Opcional. Deja en blanco si no tiene ubicación específica.</p>
-                </div>
+					<h2 class="text-lg font-semibold text-gray-900 mb-4">📍 Ubicación en Mapa</h2>
+					
+					<div class="grid grid-cols-2 gap-4 mb-4">
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-2">Latitud</label>
+							<input type="number" id="lat" name="lat" value="<?php echo htmlspecialchars($actividad['lat'] ?? ''); ?>" 
+								   step="0.00000001" placeholder="51.8143"
+								   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+						</div>
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-2">Longitud</label>
+							<input type="number" id="lng" name="lng" value="<?php echo htmlspecialchars($actividad['lng'] ?? ''); ?>" 
+								   step="0.00000001" placeholder="4.6650"
+								   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+						</div>
+					</div>
+					
+					<!-- Mapa interactivo -->
+					<div class="mb-4">
+						<label class="block text-sm font-medium text-gray-700 mb-2">Seleccionar en el mapa</label>
+						<div id="location-map" class="w-full h-80 rounded-lg border-2 border-gray-300 overflow-hidden"></div>
+					</div>
+					
+					<div class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+						<p class="text-sm text-blue-800">
+							<strong>💡 Cómo usar:</strong> Haz click en el mapa para seleccionar la ubicación, 
+							o arrastra el marcador rojo. También puedes introducir las coordenadas manualmente.
+						</p>
+					</div>
+				</div>
 
                 <div class="bg-white shadow rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">Detalles Adicionales (Opcional)</h2>
@@ -324,6 +348,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Scripts Externos -->
     <script src="js/icons-library.js"></script>
     <script src="js/icon-picker.js"></script>
+	
+	<!-- Leaflet JavaScript -->
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+			integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+			crossorigin=""></script>
+
+	<!-- Location Picker Component -->
+	<script src="js/location-picker.js"></script>
     
     <!-- Script Específico de la Página -->
     <script>
@@ -344,6 +376,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             document.querySelectorAll('.detalle-row').forEach(row => {
                 attachDetalleIconEvents(row);
             });
+			
+			// Obtener coordenadas actuales del día para centrar el mapa
+			const initialLat = <?php echo !empty($dia['centro_mapa_lat']) ? $dia['centro_mapa_lat'] : 51.8143; ?>;
+			const initialLng = <?php echo !empty($dia['centro_mapa_lng']) ? $dia['centro_mapa_lng'] : 4.6650; ?>;
+			
+			const picker = createLocationPicker('location-map', 'lat', 'lng', {
+				initialLat: initialLat,
+				initialLng: initialLng,
+				initialZoom: 14
+			});
         });
         
         function agregarDetalle() {

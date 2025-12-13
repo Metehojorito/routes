@@ -47,10 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Si estamos creando, insertar primero para obtener el ID
             if ($id == 0) {
                 $stmt = $db->prepare("
-                    INSERT INTO viajes (titulo, slug, descripcion, fecha_inicio, fecha_fin, imagen_portada, activo,
+                    INSERT INTO viajes (titulo, slug, descripcion, fecha_inicio, fecha_fin, imagen_portada, pin_mapa, activo,
                                        color_primary, color_secondary, color_bg_light, color_bg_dark,
                                        color_card_light, color_card_dark) 
-                    VALUES (?, ?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->execute([$titulo, $slug, $descripcion, $fecha_inicio, $fecha_fin, $activo,
                                $color_primary, $color_secondary, $color_bg_light, $color_bg_dark,
@@ -91,19 +91,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
+            // Procesar pin del mapa si se sube
+            $pin_mapa = $viaje['pin_mapa'] ?? '';
+            if (isset($_FILES['pin_mapa']) && $_FILES['pin_mapa']['error'] === UPLOAD_ERR_OK) {
+                $upload_dir = "../images/$id/maps/";
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
+                }
+                
+                $file_extension = strtolower(pathinfo($_FILES['pin_mapa']['name'], PATHINFO_EXTENSION));
+                $allowed_extensions = ['gif', 'png'];
+                
+                if (in_array($file_extension, $allowed_extensions)) {
+                    // Eliminar pin anterior si existe
+                    if (!empty($pin_mapa) && strpos($pin_mapa, 'images/') !== false) {
+                        $old_file = "../" . $pin_mapa;
+                        if (file_exists($old_file)) {
+                            unlink($old_file);
+                        }
+                    }
+                    
+                    $new_filename = 'pin.' . $file_extension;
+                    $destination = $upload_dir . $new_filename;
+                    
+                    if (move_uploaded_file($_FILES['pin_mapa']['tmp_name'], $destination)) {
+                        $pin_mapa = "images/$id/maps/" . $new_filename;
+                    } else {
+                        $error = "Error al subir el pin del mapa";
+                    }
+                } else {
+                    $error = "Formato de pin no válido. Usa GIF o PNG";
+                }
+            }
+            
             if (empty($error)) {
-                // Actualizar con la imagen
+                // Actualizar con la imagen y el pin
                 $stmt = $db->prepare("
                     UPDATE viajes SET 
                         titulo = ?, slug = ?, descripcion = ?, 
                         fecha_inicio = ?, fecha_fin = ?, 
-                        imagen_portada = ?, activo = ?,
+                        imagen_portada = ?, pin_mapa = ?, activo = ?,
                         color_primary = ?, color_secondary = ?,
                         color_bg_light = ?, color_bg_dark = ?,
                         color_card_light = ?, color_card_dark = ?
                     WHERE id = ?
                 ");
-                $stmt->execute([$titulo, $slug, $descripcion, $fecha_inicio, $fecha_fin, $imagen_portada, $activo,
+                $stmt->execute([$titulo, $slug, $descripcion, $fecha_inicio, $fecha_fin, $imagen_portada, $pin_mapa, $activo,
                                $color_primary, $color_secondary, $color_bg_light, $color_bg_dark, 
                                $color_card_light, $color_card_dark, $id]);
                 $success = $viaje ? "Viaje actualizado correctamente" : "Viaje creado correctamente";
@@ -137,7 +170,7 @@ if (isset($_GET['success'])) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        #preview-image { max-height: 200px; object-fit: cover; }
+        #preview-image, #preview-pin { max-height: 200px; object-fit: cover; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -251,6 +284,36 @@ if (isset($_GET['success'])) {
                     <div id="new-preview" class="hidden mt-3">
                         <img id="new-preview-image" src="" alt="Vista previa" class="rounded-lg border border-gray-300">
                         <p class="text-sm text-green-600 mt-1">Nueva imagen seleccionada</p>
+                    </div>
+                </div>
+
+                <div class="border-t pt-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">📍 Pin Personalizado del Mapa</label>
+                    
+                    <?php if (!empty($viaje['pin_mapa'])): ?>
+                    <div class="mb-3">
+                        <img id="preview-pin" src="../<?php echo htmlspecialchars($viaje['pin_mapa']); ?>" alt="Pin actual" class="rounded-lg border border-gray-300 bg-gray-50 p-2">
+                        <p class="text-sm text-gray-500 mt-1">Pin actual</p>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <input type="file" name="pin_mapa" id="pin_mapa" accept="image/gif,image/png"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="mt-1 text-sm text-gray-500">
+                        Solo GIF o PNG. Este pin aparecerá en los mapas de Google Maps del viaje. 
+                        <?php echo $viaje ? 'Deja vacío para mantener el pin actual.' : ''; ?>
+                    </p>
+                    
+                    <div id="new-preview-pin" class="hidden mt-3">
+                        <img id="new-preview-pin-image" src="" alt="Vista previa pin" class="rounded-lg border border-gray-300 bg-gray-50 p-2" style="max-height: 100px;">
+                        <p class="text-sm text-green-600 mt-1">Nuevo pin seleccionado</p>
+                    </div>
+                    
+                    <div class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p class="text-sm text-blue-800">
+                            <strong>💡 Recomendación:</strong> El pin debe ser una imagen pequeña (40x40px recomendado) 
+                            en formato GIF animado o PNG con transparencia para mejores resultados.
+                        </p>
                     </div>
                 </div>
 
@@ -379,7 +442,7 @@ if (isset($_GET['success'])) {
     </div>
     
     <script>
-    // Preview de imagen seleccionada
+    // Preview de imagen de portada seleccionada
     document.getElementById('imagen_portada').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -391,6 +454,21 @@ if (isset($_GET['success'])) {
             reader.readAsDataURL(file);
         } else {
             document.getElementById('new-preview').classList.add('hidden');
+        }
+    });
+
+    // Preview de pin del mapa seleccionado
+    document.getElementById('pin_mapa').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('new-preview-pin-image').src = e.target.result;
+                document.getElementById('new-preview-pin').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            document.getElementById('new-preview-pin').classList.add('hidden');
         }
     });
 
