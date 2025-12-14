@@ -106,19 +106,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['kmz_file'])) {
                     if ($xml === false) {
                         $error = 'El archivo KML no es válido.';
                     } else {
-                        // Registrar namespaces
-                        $namespaces = $xml->getNamespaces(true);
-                        $kml_ns = isset($namespaces['']) ? '' : 'kml';
+                        // Registrar el namespace KML para búsquedas XPath
+                        $xml->registerXPathNamespace('kml', 'http://www.opengis.net/kml/2.2');
                         
-                        // Buscar todas las carpetas (capas)
-                        $folders = $xml->xpath('//Folder');
+                        // Buscar todas las carpetas (capas) usando el namespace
+                        $folders = $xml->xpath('//kml:Folder');
                         
                         if (empty($folders)) {
                             $error = 'No se encontraron capas en el archivo KML.';
                         } else {
                             foreach ($folders as $folder) {
                                 $capa_nombre = (string)$folder->name;
-                                $placemarks = $folder->xpath('.//Placemark');
+                                $placemarks = $folder->xpath('.//kml:Placemark');
                                 
                                 $puntos = [];
                                 foreach ($placemarks as $placemark) {
@@ -126,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['kmz_file'])) {
                                     $descripcion = isset($placemark->description) ? (string)$placemark->description : '';
                                     
                                     // Extraer coordenadas
-                                    $point = $placemark->xpath('.//Point/coordinates');
+                                    $point = $placemark->xpath('.//kml:Point/kml:coordinates');
                                     if (!empty($point)) {
                                         $coords = trim((string)$point[0]);
                                         $coords_array = explode(',', $coords);
