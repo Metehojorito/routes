@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Viaje de Prueba</name>
+    <description>Archivo KML de prueba para importación</description>
+    
+    <!-- Capa 1: Día en Madrid -->
+    <Folder>
+      <name>Día en Madrid</name>
+      <description>Visita a los principales monumentos de Madrid</description>
+      
+      <Placemark>
+        <name>Puerta del Sol</name>
+        <description>Plaza principal de Madrid, kilómetro cero de España</description>
+        <Point>
+          <coordinates>-3.7037902,40.4167754,0</coordinates>
+        </Point>
+      </Placemark>
+      
+      <Placemark>
+        <name>Plaza Mayor</name>
+        <description>Plaza histórica con arquitectura del siglo XVII</description>
+        <Point>
+          <coordinates>-3.7073463,40.4153492,0</coordinates>
+        </Point>
+      </Placemark>
+      
+      <Placemark>
+        <name>Palacio Real</name>
+        <description>Residencia oficial de la familia real española</description>
+        <Point>
+          <coordinates>-3.7144274,40.4179519,0</coordinates>
+        </Point>
+      </Placemark>
+      
+      <Placemark>
+        <name>Museo del Prado</name>
+        <description>Uno de los museos de arte más importantes del mundo</description>
+        <Point>
+          <coordinates>-3.6922498,40.4137818,0</coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+    
+    <!-- Capa 2: Día en Toledo -->
+    <Folder>
+      <name>Excursión a Toledo</name>
+      <description>Ciudad medieval patrimonio de la humanidad</description>
+      
+      <Placemark>
+        <name>Catedral de Toledo</name>
+        <description>Catedral gótica del siglo XIII</description>
+        <Point>
+          <coordinates>-4.0242353,39.8577752,0</coordinates>
+        </Point>
+      </Placemark>
+      
+      <Placemark>
+        <name>Alcázar de Toledo</name>
+        <description>Fortaleza sobre el punto más alto de la ciudad</description>
+        <Point>
+          <coordinates>-4.0211735,39.8577752,0</coordinates>
+        </Point>
+      </Placemark>
+      
+      <Placemark>
+        <name>Sinagoga del Tránsito</name>
+        <description>Sinagoga histórica del siglo XIV</description>
+        <Point>
+          <coordinates>-4.0297318,39.8561234,0</coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+    
+    <!-- Capa 3: Día en Segovia -->
+    <Folder>
+      <name>Visita a Segovia</name>
+      <description>Ciudad con acueducto romano y alcázar</description>
+      
+      <Placemark>
+        <name>Acueducto de Segovia</name>
+        <description>Acueducto romano del siglo I d.C.</description>
+        <Point>
+          <coordinates>-4.1177864,40.9481124,0</coordinates>
+        </Point>
+      </Placemark>
+      
+      <Placemark>
+        <name>Alcázar de Segovia</name>
+        <description>Castillo medieval que inspiró el castillo de Disney</description>
+        <Point>
+          <coordinates>-4.1305542,40.9531234,0</coordinates>
+        </Point>
+      </Placemark>
+      
+      <Placemark>
+        <name>Catedral de Segovia</name>
+        <description>Última catedral gótica construida en España</description>
+        <Point>
+          <coordinates>-4.1252136,40.9489567,0</coordinates>
+        </Point>
+      </Placemark>
+      
+      <Placemark>
+        <name>Casa de los Picos</name>
+        <description>Edificio con fachada de picos de granito</description>
+        <Point>
+          <coordinates>-4.1234567,40.9478901,0</coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

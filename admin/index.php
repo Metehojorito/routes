@@ -188,6 +188,11 @@ $viajes = $stmt->fetchAll();
                                            title="Contactos emergencia">
                                             <span class="material-symbols-outlined text-xl">emergency</span>
                                         </a>
+                                        <a href="kmz_import.php?viaje_id=<?php echo $viaje['id']; ?>" 
+                                           class="text-teal-600 hover:text-teal-900 p-2 rounded hover:bg-teal-50 transition"
+                                           title="Importar KMZ/KML">
+                                            <span class="material-symbols-outlined text-xl">upload_file</span>
+                                        </a>
                                         <a href="viaje_delete.php?id=<?php echo $viaje['id']; ?>" 
                                            onclick="return confirm('¿Estás seguro de eliminar este viaje?')" 
                                            class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"

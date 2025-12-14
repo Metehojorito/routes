@@ -87,6 +87,31 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         </header>
 
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <?php if (isset($_SESSION['import_success'])): ?>
+            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <span class="material-symbols-outlined text-green-400">check_circle</span>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700"><?php echo htmlspecialchars($_SESSION['import_success']); unset($_SESSION['import_success']); ?></p>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['import_error'])): ?>
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <span class="material-symbols-outlined text-red-400">error</span>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700"><?php echo htmlspecialchars($_SESSION['import_error']); unset($_SESSION['import_error']); ?></p>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
             <div class="bg-white shadow rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                     <h2 class="text-xl font-semibold text-gray-900">
