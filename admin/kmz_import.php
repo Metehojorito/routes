@@ -106,11 +106,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['kmz_file'])) {
                     if ($xml === false) {
                         $error = 'El archivo KML no es válido.';
                     } else {
-                        // Buscar todas las carpetas (capas)
-                        // Usamos SimpleXML con el namespace KML para mayor robustez
+                        // Buscar todas las carpetas (capas) de forma robusta
+                        $folders = [];
+                        
+                        // 1. Intentar con el namespace KML explícito
+                        $xml->registerXPathNamespace('kml', 'http://www.opengis.net/kml/2.2');
                         $folders = $xml->xpath('//kml:Folder');
                         
-                        // Si no se encuentran con el namespace, intentar sin él (para KMLs mal formados)
+                        // 2. Si no se encuentran, intentar sin el namespace (para KMLs mal formados o con namespace por defecto)
+                        if (empty($folders)) {
+                            // Intentar registrar el namespace por defecto y buscar con el prefijo 'def'
+                            $namespaces = $xml->getNamespaces(true);
+                            if (isset($namespaces[''])) {
+                                $xml->registerXPathNamespace('def', $namespaces['']);
+                                $folders = $xml->xpath('//def:Folder');
+                            }
+                        }
+                        
+                        // 3. Si aún no se encuentran, intentar sin prefijo (para KMLs muy simples)
                         if (empty($folders)) {
                             $folders = $xml->xpath('//Folder');
                         }
