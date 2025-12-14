@@ -106,18 +106,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['kmz_file'])) {
                     if ($xml === false) {
                         $error = 'El archivo KML no es válido.';
                     } else {
-                        // Registrar el namespace KML para búsquedas XPath
-                        $xml->registerXPathNamespace('kml', 'http://www.opengis.net/kml/2.2');
-                        
-                        // Buscar todas las carpetas (capas) usando el namespace
+                        // Buscar todas las carpetas (capas)
+                        // Usamos SimpleXML con el namespace KML para mayor robustez
                         $folders = $xml->xpath('//kml:Folder');
+                        
+                        // Si no se encuentran con el namespace, intentar sin él (para KMLs mal formados)
+                        if (empty($folders)) {
+                            $folders = $xml->xpath('//Folder');
+                        }
                         
                         if (empty($folders)) {
                             $error = 'No se encontraron capas en el archivo KML.';
                         } else {
                             foreach ($folders as $folder) {
                                 $capa_nombre = (string)$folder->name;
-                                $placemarks = $folder->xpath('.//kml:Placemark');
+                                // Acceso directo a los Placemarks dentro de la carpeta
+                                $placemarks = $folder->Placemark;
                                 
                                 $puntos = [];
                                 foreach ($placemarks as $placemark) {
@@ -125,9 +129,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['kmz_file'])) {
                                     $descripcion = isset($placemark->description) ? (string)$placemark->description : '';
                                     
                                     // Extraer coordenadas
-                                    $point = $placemark->xpath('.//kml:Point/kml:coordinates');
-                                    if (!empty($point)) {
-                                        $coords = trim((string)$point[0]);
+                                    // Acceso directo a Point/coordinates
+                                    $point = $placemark->Point->coordinates;
+                                    if ($point) {
+                                        $coords = trim((string)$point);
                                         $coords_array = explode(',', $coords);
                                         
                                         if (count($coords_array) >= 2) {
