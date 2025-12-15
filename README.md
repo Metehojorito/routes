@@ -41,6 +41,7 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 - Subida de imagen de portada
 - **🆕 Subida de pin personalizado** para mapas (GIF/PNG/WebP)
 - Configuración de fechas y slug único
+- Importación de archivo KMZ/KML donde se asignan las capas a días del viaje
 - Personalización de colores con 8 plantillas predefinidas:
   - 🏖️ Tropical (Cian y Dorado)
   - 🏔️ Montaña (Verde bosque y Marrón)
