@@ -31,6 +31,11 @@
                     <?php echo $actividad['total_detalles']; ?> detalles
                 </span>
                 <?php endif; ?>
+				<?php if (!$actividad['visible']): ?>
+				<span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full font-medium text-xs">
+					Oculto
+				</span>
+				<?php endif; ?>
             </div>
         </div>
     </div>

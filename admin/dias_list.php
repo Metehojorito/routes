@@ -177,6 +177,9 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                                         <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                                             <?php echo $dia['total_actividades']; ?> actividades
                                         </span>
+										<span class="px-2 py-1 text-xs font-medium rounded-full <?php echo $dia['visible'] ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; ?>">
+											<?php echo $dia['visible'] ? 'Visible' : 'Oculto'; ?>
+										</span>
                                     </div>
                                 </div>
                             </div>

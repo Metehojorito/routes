@@ -78,8 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         centro_mapa_lat, 
                         centro_mapa_lng, 
                         zoom_mapa, 
-                        orden
-                    ) VALUES (?, ?, ?, ?, '', ?, ?, 14, ?)
+                        orden,
+						visible
+                    ) VALUES (?, ?, ?, ?, '', ?, ?, 14, ?, 1)
                 ");
                 
                 $titulo_dia = $capa['nombre'];
@@ -111,8 +112,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         color_categoria,
                         lat,
                         lng,
-                        orden
-                    ) VALUES (?, NULL, ?, ?, 'place', 'primary', ?, ?, ?)
+                        orden,
+						visible
+                    ) VALUES (?, NULL, ?, ?, 'place', 'primary', ?, ?, ?, 1)
                 ");
                 
                 $stmt->execute([

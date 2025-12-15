@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $centro_mapa_lng = (float)$_POST['centro_mapa_lng'];
     $zoom_mapa = (int)($_POST['zoom_mapa'] ?? 14);
     $orden = (int)($_POST['orden'] ?? $numero_dia);
+	$visible = isset($_POST['visible']) ? 1 : 0;
     
     if (empty($titulo) || empty($fecha)) {
         $error = "El título y la fecha son obligatorios";
@@ -43,23 +44,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             if ($id > 0) {
-                $stmt = $db->prepare("
-                    UPDATE dias_viaje SET 
-                        numero_dia = ?, fecha = ?, titulo = ?, descripcion = ?,
-                        centro_mapa_lat = ?, centro_mapa_lng = ?, zoom_mapa = ?, orden = ?
-                    WHERE id = ?
-                ");
-                $stmt->execute([$numero_dia, $fecha, $titulo, $descripcion, 
-                               $centro_mapa_lat, $centro_mapa_lng, $zoom_mapa, $orden, $id]);
+				$stmt = $db->prepare("
+					UPDATE dias_viaje SET 
+						numero_dia = ?, fecha = ?, titulo = ?, descripcion = ?,
+						centro_mapa_lat = ?, centro_mapa_lng = ?, zoom_mapa = ?, orden = ?, visible = ?
+					WHERE id = ?
+				");
+				$stmt->execute([$numero_dia, $fecha, $titulo, $descripcion, 
+							   $centro_mapa_lat, $centro_mapa_lng, $zoom_mapa, $orden, $visible, $id]);
                 $success = "Día actualizado correctamente";
             } else {
-                $stmt = $db->prepare("
-                    INSERT INTO dias_viaje 
-                    (viaje_id, numero_dia, fecha, titulo, descripcion, centro_mapa_lat, centro_mapa_lng, zoom_mapa, orden)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
-                $stmt->execute([$viaje_id, $numero_dia, $fecha, $titulo, $descripcion,
-                               $centro_mapa_lat, $centro_mapa_lng, $zoom_mapa, $orden]);
+				$stmt = $db->prepare("
+					INSERT INTO dias_viaje 
+					(viaje_id, numero_dia, fecha, titulo, descripcion, centro_mapa_lat, 
+					 centro_mapa_lng, zoom_mapa, orden, visible)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				");
+				$stmt->execute([$viaje_id, $numero_dia, $fecha, $titulo, $descripcion,
+								$centro_mapa_lat, $centro_mapa_lng, $zoom_mapa, $orden, $visible]);
                 $id = $db->lastInsertId();
                 header("Location: dia_form.php?id=$id&success=1");
                 exit;
@@ -199,6 +201,18 @@ if (isset($_GET['success'])) $success = "Día creado correctamente";
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <p class="mt-1 text-sm text-gray-500">Orden de aparición en la lista. Por defecto, igual al número de día.</p>
                     </div>
+					
+					<div class="flex items-center mt-4">
+						<input type="checkbox" name="visible" id="visible" 
+							   <?php echo ($dia['visible'] ?? 1) ? 'checked' : ''; ?> 
+							   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+						<label for="visible" class="ml-2 block text-sm text-gray-900">
+							Día visible en la vista pública
+						</label>
+					</div>
+					<p class="mt-1 text-sm text-gray-500">
+						Si está desactivado, este día no aparecerá
+					</p>
 					
 					<div class="mt-4 p-4 bg-blue-50 rounded-lg">
 						<p class="text-sm text-blue-800">

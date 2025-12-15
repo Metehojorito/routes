@@ -55,28 +55,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lat = !empty($_POST['lat']) ? (float)$_POST['lat'] : null;
     $lng = !empty($_POST['lng']) ? (float)$_POST['lng'] : null;
     $orden = (int)($_POST['orden'] ?? 0);
+	$visible = isset($_POST['visible']) ? 1 : 0;
     
     if (empty($titulo) || empty($icono)) {
         $error = "El título y el icono son obligatorios";
     } else {
         try {
             if ($id > 0) {
-                $stmt = $db->prepare("
-                    UPDATE actividades SET 
-                        titulo = ?, descripcion = ?, icono = ?, color_categoria = ?,
-                        seccion_id = ?, lat = ?, lng = ?, orden = ?
-                    WHERE id = ?
-                ");
-                $stmt->execute([$titulo, $descripcion, $icono, $color_categoria, 
-                               $seccion_id, $lat, $lng, $orden, $id]);
+				$stmt = $db->prepare("
+					UPDATE actividades SET 
+						titulo = ?, descripcion = ?, icono = ?, color_categoria = ?,
+						seccion_id = ?, lat = ?, lng = ?, orden = ?, visible = ?
+					WHERE id = ?
+				");
+				$stmt->execute([$titulo, $descripcion, $icono, $color_categoria, 
+							   $seccion_id, $lat, $lng, $orden, $visible, $id]);
             } else {
-                $stmt = $db->prepare("
-                    INSERT INTO actividades 
-                    (dia_id, titulo, descripcion, icono, color_categoria, seccion_id, lat, lng, orden)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
-                $stmt->execute([$dia_id, $titulo, $descripcion, $icono, $color_categoria,
-                               $seccion_id, $lat, $lng, $orden]);
+				$stmt = $db->prepare("
+					INSERT INTO actividades 
+					(dia_id, titulo, descripcion, icono, color_categoria, seccion_id, lat, lng, orden, visible)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				");
+				$stmt->execute([$dia_id, $titulo, $descripcion, $icono, $color_categoria,
+							   $seccion_id, $lat, $lng, $orden, $visible]);
                 $id = $db->lastInsertId();
             }
             
@@ -306,6 +307,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            min="0" class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <p class="mt-1 text-sm text-gray-500">Orden de aparición. 0 = auto</p>
                 </div>
+				
+				<div class="flex items-center">
+					<input type="checkbox" name="visible" id="visible" 
+						   <?php echo ($actividad['visible'] ?? 1) ? 'checked' : ''; ?> 
+						   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+					<label for="visible" class="ml-2 block text-sm text-gray-900">
+						Actividad visible en la vista pública
+					</label>
+				</div>
+				<p class="mt-1 text-sm text-gray-500">
+					Si está desactivado, esta actividad no aparecerá
+				</p>
 
                 <div class="flex justify-end gap-3">
                     <a href="actividades_list.php?dia_id=<?php echo $dia_id; ?>" 

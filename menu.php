@@ -14,7 +14,7 @@ if (!$viaje) {
 $colores = getViajeColores($viaje['id']);
 
 // Obtener días del viaje
-$stmt = $db->prepare("SELECT * FROM dias_viaje WHERE viaje_id = ? ORDER BY orden, numero_dia");
+$stmt = $db->prepare("SELECT * FROM dias_viaje WHERE viaje_id = ? AND visible = 1 ORDER BY orden, numero_dia");
 $stmt->execute([$viaje['id']]);
 $dias = $stmt->fetchAll();
 

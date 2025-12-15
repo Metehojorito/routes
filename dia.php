@@ -20,6 +20,10 @@ $stmt->execute([$viaje['id'], $numero_dia]);
 $dia = $stmt->fetch();
 if (!$dia) die("Día no encontrado");
 
+if (!$dia['visible']) {
+    die("Este día no está disponible");
+}
+
 // Obtener días anterior y siguiente
 $stmt = $db->prepare("SELECT numero_dia FROM dias_viaje WHERE viaje_id = ? AND numero_dia < ? ORDER BY numero_dia DESC LIMIT 1");
 $stmt->execute([$viaje['id'], $numero_dia]);
@@ -35,7 +39,7 @@ $stmt->execute([$dia['id']]);
 $secciones = $stmt->fetchAll();
 
 // Obtener actividades del día
-$stmt = $db->prepare("SELECT * FROM actividades WHERE dia_id = ? ORDER BY orden");
+$stmt = $db->prepare("SELECT * FROM actividades WHERE dia_id = ? AND visible = 1 ORDER BY orden");
 $stmt->execute([$dia['id']]);
 $actividades = $stmt->fetchAll();
 
