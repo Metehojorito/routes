@@ -107,11 +107,11 @@ if (!empty($viaje['pin_mapa'])) {
     <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     body, html { height: 100dvh; margin: 0; padding: 0; overflow: hidden; }
-    
+
     /* Estilos específicos para Leaflet */
     #map { height: 100%; width: 100%; }
     .leaflet-container { font-family: 'Plus Jakarta Sans', sans-serif; }
-    
+
     /* Estilo para el popup de Leaflet en modo oscuro */
     .dark .leaflet-popup-content-wrapper,
     .dark .leaflet-popup-tip {
@@ -120,6 +120,287 @@ if (!empty($viaje['pin_mapa'])) {
     }
     .dark .leaflet-popup-close-button {
         color: #ffffff !important;
+    }
+
+    /* ========================================== */
+	/* ESTILOS PARA IMPRESIÓN */
+	/* ========================================== */
+	@media print {
+		/* Ocultar overlay y FAB */
+		#fabOverlay,
+		#fabMenu,
+		#toast {
+			display: none !important;
+		}
+		
+		/* Ocultar controles de navegación */
+		.sticky.top-0 {
+			display: none !important;
+		}
+		
+		/* Mostrar el mapa en impresión */
+		#map {
+			display: block !important;
+			height: 300px !important;
+			width: 100% !important;
+			page-break-inside: avoid;
+			break-inside: avoid;
+			margin-bottom: 20px;
+		}
+		
+		/* Ajustar contenedor del mapa */
+		.h-\[40vh\] {
+			height: auto !important;
+			min-height: 300px !important;
+		}
+		
+		/* Ocultar controles del mapa de Leaflet */
+		.leaflet-control-container {
+			display: none !important;
+		}
+		
+		/* Ocultar popups del mapa */
+		.leaflet-popup {
+			display: none !important;
+		}
+		
+		/* Asegurar que los tiles del mapa se impriman */
+		.leaflet-tile-container img {
+			-webkit-print-color-adjust: exact !important;
+			print-color-adjust: exact !important;
+		}
+		
+		/* Resetear estilos para impresión */
+		body, html {
+			height: auto !important;
+			overflow: visible !important;
+		}
+		
+		/* Contenedor principal sin restricciones */
+		.relative.flex.h-screen {
+			height: auto !important;
+		}
+		
+		/* Área de contenido sin scroll */
+		.overflow-y-auto {
+			overflow: visible !important;
+			max-height: none !important;
+			height: auto !important;
+		}
+		
+		/* Asegurar que todas las actividades se impriman */
+		.space-y-4,
+		.space-y-3 {
+			page-break-inside: avoid;
+		}
+		
+		/* Evitar cortes en las actividades */
+		.item-daily {
+			page-break-inside: avoid;
+			break-inside: avoid;
+			margin-bottom: 10px;
+		}
+		
+		/* Títulos de sección al inicio de página */
+		h2 {
+			page-break-after: avoid;
+			break-after: avoid;
+			margin-top: 20px;
+			font-size: 18px;
+			font-weight: bold;
+		}
+		
+		/* Colores más oscuros para impresión */
+		.text-text-light-primary,
+		.dark .text-text-dark-primary {
+			color: #000 !important;
+		}
+		
+		.text-text-light-secondary,
+		.dark .text-text-dark-secondary {
+			color: #555 !important;
+		}
+		
+		/* Fondo blanco para todo */
+		body,
+		.bg-background-light,
+		.dark\:bg-background-dark,
+		.bg-card-light,
+		.dark\:bg-card-dark {
+			background-color: #fff !important;
+		}
+		
+		/* Bordes visibles */
+		.rounded-lg,
+		.shadow-sm {
+			border: 1px solid #ddd !important;
+			box-shadow: none !important;
+			border-radius: 8px !important;
+		}
+		
+		/* Hacer los iconos de actividades imprimibles */
+		.material-symbols-outlined {
+			-webkit-print-color-adjust: exact !important;
+			print-color-adjust: exact !important;
+		}
+		
+		/* Colores de fondo para iconos */
+		[class*="bg-primary"],
+		[class*="bg-secondary"] {
+			-webkit-print-color-adjust: exact !important;
+			print-color-adjust: exact !important;
+		}
+		
+		/* Asegurar que los colores de los iconos se impriman */
+		.item-daily > div > div:first-child {
+			-webkit-print-color-adjust: exact !important;
+			print-color-adjust: exact !important;
+		}
+		
+		/* Encabezado de impresión */
+		@page {
+			margin: 1.5cm;
+			size: A4;
+		}
+		
+		/* Agregar título del viaje al inicio */
+		body::before {
+			content: '<?php echo htmlspecialchars($viaje['titulo']); ?> - Día <?php echo $numero_dia; ?>: <?php echo $fecha->format('d/m/Y'); ?>';
+			display: block;
+			font-size: 22px;
+			font-weight: bold;
+			margin-bottom: 20px;
+			padding-bottom: 15px;
+			border-bottom: 2px solid #333;
+			text-align: center;
+		}
+		
+		/* Espaciado adicional */
+		.p-4 {
+			padding: 0 !important;
+		}
+		
+		.px-4 {
+			padding-left: 0 !important;
+			padding-right: 0 !important;
+		}
+	}
+
+    /* ========================================== */
+    /* FAB (Floating Action Button) */
+    /* ========================================== */
+
+    /* Overlay de fondo cuando el menú está abierto */
+    #fabOverlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0);
+        backdrop-filter: blur(0px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        z-index: 19;
+        opacity: 0;
+    }
+
+    #fabOverlay.active {
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        pointer-events: auto;
+        opacity: 1;
+    }
+
+    /* Contenedor del menú FAB */
+    #fabMenu {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 1rem;
+        pointer-events: none;
+    }
+
+    /* Solo los botones deben recibir clicks */
+    #fabMenu button {
+        pointer-events: auto;
+    }
+
+    /* Animaciones para las opciones del FAB */
+    .fab-action {
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+    }
+
+    .fab-action.visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    .fab-action.delay-0 { transition-delay: 0ms; }
+    .fab-action.delay-75 { transition-delay: 75ms; }
+    .fab-action.delay-100 { transition-delay: 100ms; }
+    .fab-action.delay-150 { transition-delay: 150ms; }
+
+    .fab-action.visible.delay-0 { transition-delay: 150ms; }
+    .fab-action.visible.delay-75 { transition-delay: 100ms; }
+    .fab-action.visible.delay-100 { transition-delay: 50ms; }
+    .fab-action.visible.delay-150 { transition-delay: 0ms; }
+
+    .fab-label {
+        white-space: nowrap;
+    }
+
+    /* Botón principal - rotación cuando está abierto */
+    #fabMain {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    #fabMain.open {
+        transform: rotate(45deg);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Botones de acción - más destacados cuando el menú está abierto */
+    .fab-action.visible button {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .dark .fab-action.visible button {
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Labels más visibles */
+    .fab-action.visible .fab-label {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .dark .fab-action.visible .fab-label {
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Toast de confirmación */
+    #toast {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 100;
+        pointer-events: none;
+    }
+
+    #toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
     }
     </style>
     
@@ -274,13 +555,77 @@ if (!empty($viaje['pin_mapa'])) {
         </div>
     </div>
     
+    <!-- Floating Action Button (FAB) Container -->
+    <div id="fabContainer" class="fixed inset-0 z-20" style="pointer-events: none;">
+        <!-- Overlay de fondo -->
+        <div id="fabOverlay"></div>
+
+        <!-- Menú FAB -->
+        <div id="fabMenu">
+            <!-- Opción: Compartir itinerario -->
+            <div class="fab-action flex items-center gap-3 delay-150">
+                <span class="fab-label rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-lg dark:bg-gray-800 dark:text-white">
+                    Compartir itinerario
+                </span>
+                <button id="btnShare" class="flex size-12 items-center justify-center rounded-full bg-white text-gray-700 shadow-lg hover:bg-primary hover:text-white transition-all dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary">
+                    <span class="material-symbols-outlined text-xl">share</span>
+                </button>
+            </div>
+
+            <!-- Opción: Ver todas en Google Maps -->
+            <div class="fab-action flex items-center gap-3 delay-100">
+                <span class="fab-label rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-lg dark:bg-gray-800 dark:text-white">
+                    Ver todas en Google Maps
+                </span>
+                <button id="btnMaps" class="flex size-12 items-center justify-center rounded-full bg-white text-gray-700 shadow-lg hover:bg-primary hover:text-white transition-all dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary">
+                    <span class="material-symbols-outlined text-xl">map</span>
+                </button>
+            </div>
+
+            <!-- Opción: Imprimir itinerario -->
+            <div class="fab-action flex items-center gap-3 delay-75">
+                <span class="fab-label rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-lg dark:bg-gray-800 dark:text-white">
+                    Imprimir itinerario
+                </span>
+                <button id="btnPrint" class="flex size-12 items-center justify-center rounded-full bg-white text-gray-700 shadow-lg hover:bg-primary hover:text-white transition-all dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary">
+                    <span class="material-symbols-outlined text-xl">print</span>
+                </button>
+            </div>
+
+            <!-- Opción: Añadir a calendario -->
+            <div class="fab-action flex items-center gap-3 delay-0">
+                <span class="fab-label rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-lg dark:bg-gray-800 dark:text-white">
+                    Añadir a calendario
+                </span>
+                <button id="btnCalendar" class="flex size-12 items-center justify-center rounded-full bg-white text-gray-700 shadow-lg hover:bg-primary hover:text-white transition-all dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary">
+                    <span class="material-symbols-outlined text-xl">event</span>
+                </button>
+            </div>
+
+            <!-- Botón principal -->
+            <button id="fabMain" class="flex size-14 items-center justify-center rounded-full bg-secondary text-white transition-all hover:scale-105 active:scale-95">
+                <span class="material-symbols-outlined text-3xl">add</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Toast de confirmación -->
+    <div id="toast" class="rounded-lg bg-card-light px-4 py-3 shadow-xl dark:bg-card-dark">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-green-500">check_circle</span>
+            <span id="toastMessage" class="text-sm font-medium text-text-light-primary dark:text-text-dark-primary"></span>
+        </div>
+    </div>
+    
     <!-- Leaflet JavaScript -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
             crossorigin=""></script>
     
     <script>
-    // Navegación entre días (saltando días ocultos)
+    // ==========================================
+    // NAVEGACIÓN ENTRE DÍAS
+    // ==========================================
     document.getElementById("btnBack").addEventListener("click", () => {
         <?php if ($dia_anterior): ?>
         window.location.href = "dia.php?dia=<?php echo $dia_anterior['numero_dia']; ?>";
@@ -295,14 +640,14 @@ if (!empty($viaje['pin_mapa'])) {
     });
     <?php endif; ?>
     
-    // Inicializar mapa con Leaflet
+    // ==========================================
+    // MAPA CON LEAFLET
+    // ==========================================
     let map, markers = {};
     
-    // Coordenadas del centro del mapa
     const center = [<?php echo $dia['centro_mapa_lat']; ?>, <?php echo $dia['centro_mapa_lng']; ?>];
     const zoom = <?php echo $dia['zoom_mapa']; ?>;
     
-    // Crear el mapa
     map = L.map('map', {
         center: center,
         zoom: zoom,
@@ -313,13 +658,11 @@ if (!empty($viaje['pin_mapa'])) {
         doubleClickZoom: true
     });
     
-    // Añadir capa de tiles de OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19
     }).addTo(map);
     
-    // Crear icono personalizado
     const customIcon = L.icon({
         iconUrl: '<?php echo htmlspecialchars($pin_url); ?>',
         iconSize: [40, 40],
@@ -327,7 +670,6 @@ if (!empty($viaje['pin_mapa'])) {
         popupAnchor: [0, -40]
     });
     
-    // Añadir marcadores desde las actividades
     const items = document.querySelectorAll(".item-daily");
     items.forEach((div, index) => {
         const lat = parseFloat(div.dataset.lat);
@@ -354,10 +696,225 @@ if (!empty($viaje['pin_mapa'])) {
         }
     });
     
-    // Ajustar el tamaño del mapa
     setTimeout(() => {
         map.invalidateSize();
     }, 100);
+    
+    // ==========================================
+    // FLOATING ACTION BUTTON (FAB)
+    // ==========================================
+    const fabMain = document.getElementById('fabMain');
+    const fabOverlay = document.getElementById('fabOverlay');
+    const fabActions = document.querySelectorAll('.fab-action');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    let isMenuOpen = false;
+
+    // Toggle del menú FAB
+    fabMain.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isMenuOpen = !isMenuOpen;
+
+        // Toggle clases
+        fabMain.classList.toggle('open', isMenuOpen);
+        fabOverlay.classList.toggle('active', isMenuOpen);
+        fabActions.forEach(action => {
+            action.classList.toggle('visible', isMenuOpen);
+        });
+    });
+
+    // Cerrar menú al hacer click en el overlay
+    fabOverlay.addEventListener('click', () => {
+        if (isMenuOpen) {
+            closeMenu();
+        }
+    });
+
+    // Función para cerrar el menú
+    function closeMenu() {
+        isMenuOpen = false;
+        fabMain.classList.remove('open');
+        fabOverlay.classList.remove('active');
+        fabActions.forEach(action => {
+            action.classList.remove('visible');
+        });
+    }
+
+    // Función para mostrar toast
+    function showToast(message) {
+        toastMessage.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Cerrar menú después de cada acción
+    function closeMenu() {
+        isMenuOpen = false;
+        fabContainer.classList.remove('open');
+    }
+    
+    // ==========================================
+    // OPCIÓN: COMPARTIR ITINERARIO
+    // ==========================================
+    document.getElementById('btnShare').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const shareUrl = `${window.location.origin}${window.location.pathname}?viaje=<?php echo urlencode($viaje['slug']); ?>&dia=<?php echo $numero_dia; ?>`;
+
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: '<?php echo htmlspecialchars($dia['titulo']); ?>',
+                    text: 'Mira el itinerario del día <?php echo $numero_dia; ?> de nuestro viaje',
+                    url: shareUrl
+                });
+                showToast('¡Compartido!');
+            } else {
+                await navigator.clipboard.writeText(shareUrl);
+                showToast('¡URL copiada al portapapeles!');
+            }
+        } catch (err) {
+            console.error('Error al compartir:', err);
+        }
+
+        closeMenu();
+    });
+    
+    // ==========================================
+    // OPCIÓN: VER TODAS EN GOOGLE MAPS
+    // ==========================================
+    document.getElementById('btnMaps').addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        const locations = [];
+        items.forEach(item => {
+            const lat = parseFloat(item.dataset.lat);
+            const lng = parseFloat(item.dataset.lng);
+            if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+                locations.push(`${lat},${lng}`);
+            }
+        });
+
+        if (locations.length > 0) {
+            const origin = locations[0];
+            const destination = locations[locations.length - 1];
+            const waypoints = locations.slice(1, -1).join('|');
+
+            let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+            if (waypoints) {
+                mapsUrl += `&waypoints=${waypoints}`;
+            }
+            mapsUrl += '&travelmode=walking';
+
+            window.open(mapsUrl, '_blank');
+            showToast('Abriendo en Google Maps...');
+        } else {
+            showToast('No hay ubicaciones disponibles');
+        }
+
+        closeMenu();
+    });
+    
+    // ==========================================
+    // OPCIÓN: IMPRIMIR ITINERARIO
+    // ==========================================
+    document.getElementById('btnPrint').addEventListener('click', (e) => {
+		e.stopPropagation();
+		
+		// Cerrar cualquier popup del mapa antes de imprimir
+		map.closePopup();
+		
+		// Invalidar el tamaño del mapa para asegurar que se renderiza correctamente
+		setTimeout(() => {
+			map.invalidateSize();
+			// Esperar un poco para que el mapa se actualice antes de imprimir
+			setTimeout(() => {
+				window.print();
+			}, 100);
+		}, 100);
+		
+		closeMenu();
+	});
+    
+    // ==========================================
+    // OPCIÓN: AÑADIR A CALENDARIO
+    // ==========================================
+    document.getElementById('btnCalendar').addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // Crear archivo .ics con formato correcto
+        const fecha = '<?php echo $fecha->format('Ymd'); ?>';
+        const titulo = '<?php echo str_replace(["'", '"', "\n", "\r"], ["", "", " ", " "], $dia['titulo']); ?>';
+        const descripcion = '<?php echo str_replace(["'", '"', "\n", "\r"], ["", "", " ", " "], $dia['descripcion']); ?>';
+        const viajeNombre = '<?php echo str_replace(["'", '"', "\n", "\r"], ["", "", " ", " "], $viaje['titulo']); ?>';
+
+        // Generar UID único
+        const uid = `${fecha}-${Date.now()}@gestorviajes.com`;
+
+        // Crear descripción con lista de actividades
+        let actividadesTexto = 'Actividades del día:\\n\\n';
+        <?php 
+        $contador = 1;
+        foreach ($actividades as $act): 
+        ?>
+        actividadesTexto += '<?php echo $contador; ?>. <?php echo str_replace(["'", '"', "\n", "\r"], ["", "", " ", " "], $act['titulo']); ?>\\n';
+        <?php 
+        $contador++;
+        endforeach; 
+        ?>
+
+        const icsContent = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Gestor de Viajes//ES',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'X-WR-CALNAME:' + viajeNombre,
+            'X-WR-TIMEZONE:Europe/Madrid',
+            'BEGIN:VTIMEZONE',
+            'TZID:Europe/Madrid',
+            'BEGIN:STANDARD',
+            'DTSTART:19701025T030000',
+            'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+            'TZOFFSETFROM:+0200',
+            'TZOFFSETTO:+0100',
+            'END:STANDARD',
+            'BEGIN:DAYLIGHT',
+            'DTSTART:19700329T020000',
+            'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+            'TZOFFSETFROM:+0100',
+            'TZOFFSETTO:+0200',
+            'END:DAYLIGHT',
+            'END:VTIMEZONE',
+            'BEGIN:VEVENT',
+            'UID:' + uid,
+            'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+            'DTSTART;VALUE=DATE:' + fecha,
+            'DTEND;VALUE=DATE:' + fecha,
+            'SUMMARY:' + titulo,
+            'DESCRIPTION:' + actividadesTexto,
+            'STATUS:CONFIRMED',
+            'TRANSP:TRANSPARENT',
+            'SEQUENCE:0',
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].join('\r\n');
+
+        // Descargar archivo
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `dia-<?php echo $numero_dia; ?>-<?php echo $viaje['slug']; ?>.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+        showToast('¡Archivo de calendario descargado!');
+        closeMenu();
+    });
     </script>
 </body>
 </html>
