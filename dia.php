@@ -18,27 +18,53 @@ $colores = getViajeColores($viaje['id']);
 $stmt = $db->prepare("SELECT * FROM dias_viaje WHERE viaje_id = ? AND numero_dia = ? LIMIT 1");
 $stmt->execute([$viaje['id'], $numero_dia]);
 $dia = $stmt->fetch();
-if (!$dia) die("Día no encontrado");
 
-if (!$dia['visible']) {
-    die("Este día no está disponible");
+// Si el día no existe o no es visible, redirigir al menú
+if (!$dia || !$dia['visible']) {
+    header("Location: menu.php");
+    exit;
 }
 
-// Obtener días anterior y siguiente
-$stmt = $db->prepare("SELECT numero_dia FROM dias_viaje WHERE viaje_id = ? AND numero_dia < ? ORDER BY numero_dia DESC LIMIT 1");
-$stmt->execute([$viaje['id'], $numero_dia]);
-$dia_anterior = $stmt->fetch();
+// Función para obtener el día visible anterior
+function getDiaAnteriorVisible($db, $viaje_id, $numero_dia_actual) {
+    $stmt = $db->prepare("
+        SELECT numero_dia 
+        FROM dias_viaje 
+        WHERE viaje_id = ? 
+        AND numero_dia < ? 
+        AND visible = 1 
+        ORDER BY numero_dia DESC 
+        LIMIT 1
+    ");
+    $stmt->execute([$viaje_id, $numero_dia_actual]);
+    return $stmt->fetch();
+}
 
-$stmt = $db->prepare("SELECT numero_dia FROM dias_viaje WHERE viaje_id = ? AND numero_dia > ? ORDER BY numero_dia ASC LIMIT 1");
-$stmt->execute([$viaje['id'], $numero_dia]);
-$dia_siguiente = $stmt->fetch();
+// Función para obtener el día visible siguiente
+function getDiaSiguienteVisible($db, $viaje_id, $numero_dia_actual) {
+    $stmt = $db->prepare("
+        SELECT numero_dia 
+        FROM dias_viaje 
+        WHERE viaje_id = ? 
+        AND numero_dia > ? 
+        AND visible = 1 
+        ORDER BY numero_dia ASC 
+        LIMIT 1
+    ");
+    $stmt->execute([$viaje_id, $numero_dia_actual]);
+    return $stmt->fetch();
+}
+
+// Obtener días anterior y siguiente visibles
+$dia_anterior = getDiaAnteriorVisible($db, $viaje['id'], $numero_dia);
+$dia_siguiente = getDiaSiguienteVisible($db, $viaje['id'], $numero_dia);
 
 // Obtener secciones del día
 $stmt = $db->prepare("SELECT * FROM secciones_dia WHERE dia_id = ? ORDER BY orden");
 $stmt->execute([$dia['id']]);
 $secciones = $stmt->fetchAll();
 
-// Obtener actividades del día
+// Obtener actividades visibles del día
 $stmt = $db->prepare("SELECT * FROM actividades WHERE dia_id = ? AND visible = 1 ORDER BY orden");
 $stmt->execute([$dia['id']]);
 $actividades = $stmt->fetchAll();
@@ -130,7 +156,7 @@ if (!empty($viaje['pin_mapa'])) {
             <h1 class="flex-1 text-center text-lg font-bold leading-tight tracking-[-0.015em] text-text-light-primary dark:text-text-dark-primary">
                 <a href="menu.php">Día <?php echo $numero_dia; ?>: <?php echo $fecha->format('d'); ?> <?php echo $mes; ?>, <?php echo $dia_semana; ?></a>
             </h1>
-            <button id="btnNext" class="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-light-primary dark:text-text-dark-primary <?php echo $dia_siguiente ? '' : 'opacity-50'; ?>">
+            <button id="btnNext" class="flex size-10 shrink-0 items-center justify-center rounded-full text-text-light-primary dark:text-text-dark-primary <?php echo $dia_siguiente ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'; ?>">
                 <span class="material-symbols-outlined text-2xl">arrow_forward_ios</span>
             </button>
         </div>
@@ -254,7 +280,7 @@ if (!empty($viaje['pin_mapa'])) {
             crossorigin=""></script>
     
     <script>
-    // Navegación entre días
+    // Navegación entre días (saltando días ocultos)
     document.getElementById("btnBack").addEventListener("click", () => {
         <?php if ($dia_anterior): ?>
         window.location.href = "dia.php?dia=<?php echo $dia_anterior['numero_dia']; ?>";
@@ -288,37 +314,17 @@ if (!empty($viaje['pin_mapa'])) {
     });
     
     // Añadir capa de tiles de OpenStreetMap
-    // Puedes cambiar el estilo aquí:
-    // - OpenStreetMap estándar (claro)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19
     }).addTo(map);
     
-    // Estilos alternativos (descomenta el que prefieras):
-    
-    // CartoDB Dark Matter (oscuro elegante)
-    /*
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 19
-    }).addTo(map);
-    */
-    
-    // CartoDB Positron (claro minimalista)
-    /*
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 19
-    }).addTo(map);
-    */
-    
     // Crear icono personalizado
     const customIcon = L.icon({
         iconUrl: '<?php echo htmlspecialchars($pin_url); ?>',
-        iconSize: [40, 40],        // Tamaño del icono
-        iconAnchor: [20, 40],      // Punto del icono que corresponde a la posición del marcador
-        popupAnchor: [0, -40]      // Punto desde donde se abre el popup relativo al iconAnchor
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
     });
     
     // Añadir marcadores desde las actividades
@@ -329,25 +335,18 @@ if (!empty($viaje['pin_mapa'])) {
         const titulo = div.dataset.titulo || `Punto ${index + 1}`;
         
         if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
-            // Crear marcador
             const marker = L.marker([lat, lng], { icon: customIcon })
                 .addTo(map)
                 .bindPopup(titulo);
             
             markers[index] = marker;
             
-            // Al hacer click en una actividad, centrar el mapa
             div.addEventListener("click", () => {
-                // Primero cerrar cualquier popup abierto
                 map.closePopup();
-                
-                // Centrar el mapa con animación suave
                 map.flyTo([lat, lng], 16, {
                     duration: 0.8,
                     easeLinearity: 0.25
                 });
-                
-                // Abrir popup después de la animación
                 setTimeout(() => {
                     marker.openPopup();
                 }, 500);
@@ -355,7 +354,7 @@ if (!empty($viaje['pin_mapa'])) {
         }
     });
     
-    // Ajustar el tamaño del mapa después de cargarlo
+    // Ajustar el tamaño del mapa
     setTimeout(() => {
         map.invalidateSize();
     }, 100);
