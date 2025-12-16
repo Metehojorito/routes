@@ -6,8 +6,10 @@ $db = getDB();
 // Obtener viaje actual (desde parámetro o sesión)
 $viaje = getViajeActual();
 
+// Si no hay viaje seleccionado, mostrar página en blanco
 if (!$viaje) {
-    die("No hay viajes disponibles");
+    http_response_code(200);
+    exit;
 }
 
 // Obtener colores personalizados

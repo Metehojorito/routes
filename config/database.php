@@ -75,9 +75,15 @@ function getViajeColores($viaje_id = null, $slug = null) {
         $stmt = $db->prepare("SELECT color_primary, color_secondary, color_bg_light, color_bg_dark, color_card_light, color_card_dark FROM viajes WHERE slug = ?");
         $stmt->execute([$slug]);
     } else {
-        // Obtener el primer viaje activo
-        $stmt = $db->prepare("SELECT color_primary, color_secondary, color_bg_light, color_bg_dark, color_card_light, color_card_dark FROM viajes WHERE activo = 1 ORDER BY fecha_inicio DESC LIMIT 1");
-        $stmt->execute();
+        // Si no hay ID ni slug, devolver colores por defecto
+        return [
+            'color_primary' => '#4A90E2',
+            'color_secondary' => '#F5A623',
+            'color_bg_light' => '#F4F4F8',
+            'color_bg_dark' => '#101922',
+            'color_card_light' => '#FFFFFF',
+            'color_card_dark' => '#1c2c3a'
+        ];
     }
     
     $colores = $stmt->fetch();
@@ -114,7 +120,7 @@ function generarCSSColores($colores) {
 }
 
 // ====================================================
-// SISTEMA DE SESIÓN PARA VIAJE ACTUAL
+// SISTEMA DE SESIÓN PARA VIAJE ACTUAL - MEJORADO
 // ====================================================
 
 // Iniciar sesión si no está iniciada
@@ -131,7 +137,19 @@ function setViajeActual($viaje_id, $slug) {
     $_SESSION['viaje_actual_slug'] = $slug;
 }
 
-// Obtener viaje actual desde sesión o parámetro
+// Limpiar viaje de la sesión
+function clearViajeActual() {
+    initPublicSession();
+    unset($_SESSION['viaje_actual_id']);
+    unset($_SESSION['viaje_actual_slug']);
+}
+
+/**
+ * Obtener viaje actual desde parámetro o sesión
+ * NUEVO COMPORTAMIENTO: Requiere slug explícito en la primera visita
+ * 
+ * @return array|null Datos del viaje o null si no hay ninguno válido
+ */
 function getViajeActual() {
     initPublicSession();
     $db = getDB();
@@ -149,10 +167,14 @@ function getViajeActual() {
             // Guardar en sesión
             setViajeActual($viaje['id'], $viaje['slug']);
             return $viaje;
+        } else {
+            // Si el slug no existe, limpiar sesión
+            clearViajeActual();
+            return null;
         }
     }
     
-    // 2. Verificar si hay viaje en sesión
+    // 2. Verificar si hay viaje en sesión (visita posterior)
     if (isset($_SESSION['viaje_actual_id'])) {
         $stmt = $db->prepare("SELECT * FROM viajes WHERE id = ? AND activo = 1 LIMIT 1");
         $stmt->execute([$_SESSION['viaje_actual_id']]);
@@ -160,18 +182,26 @@ function getViajeActual() {
         
         if ($viaje) {
             return $viaje;
+        } else {
+            // Si el viaje en sesión ya no existe o está inactivo, limpiar
+            clearViajeActual();
         }
     }
     
-    // 3. Obtener el primer viaje activo por defecto
-    $stmt = $db->prepare("SELECT * FROM viajes WHERE activo = 1 ORDER BY fecha_inicio DESC LIMIT 1");
-    $stmt->execute();
-    $viaje = $stmt->fetch();
-    
-    if ($viaje) {
-        setViajeActual($viaje['id'], $viaje['slug']);
-        return $viaje;
-    }
-    
+    // 3. NO cargar ningún viaje por defecto
+    // El usuario debe especificar el slug explícitamente
     return null;
+}
+
+/**
+ * Obtener lista de todos los viajes activos
+ * Útil para mostrar un selector de viajes
+ * 
+ * @return array Lista de viajes activos
+ */
+function getViajesActivos() {
+    $db = getDB();
+    $stmt = $db->prepare("SELECT id, titulo, slug, descripcion, imagen_portada FROM viajes WHERE activo = 1 ORDER BY fecha_inicio DESC");
+    $stmt->execute();
+    return $stmt->fetchAll();
 }
