@@ -168,6 +168,10 @@ if (isset($_GET['success'])) {
     <title><?php echo $id > 0 ? 'Editar' : 'Nuevo'; ?> Viaje - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="shortcut icon" href="images/favicon.ico">
+	<link rel="icon" href="images/favicon-32x32.png" sizes="32x32" type="image/png">
+	<link rel="icon" href="images/favicon-16x16.png" sizes="16x16" type="image/png">
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
     <style>
         body { font-family: 'Inter', sans-serif; }
         #preview-image, #preview-pin { max-height: 200px; object-fit: cover; }
@@ -326,9 +330,9 @@ if (isset($_GET['success'])) {
                             <label class="block text-sm font-medium text-gray-700 mb-2">Color Principal</label>
                             <div class="flex gap-2">
                                 <input type="color" name="color_primary" value="<?php echo htmlspecialchars($viaje['color_primary'] ?? '#4A90E2'); ?>" 
-                                       class="h-10 w-20 rounded border border-gray-300 cursor-pointer">
+                                       class="h-10 w-20 min-w-12 rounded border border-gray-300 cursor-pointer">
                                 <input type="text" value="<?php echo htmlspecialchars($viaje['color_primary'] ?? '#4A90E2'); ?>" 
-                                       readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                                       readonly class="flex-1 px-3 py-2 min-w-24 border border-gray-300 rounded-md bg-gray-50 text-sm">
                             </div>
                             <p class="mt-1 text-xs text-gray-500">Iconos principales, enlaces</p>
                         </div>
@@ -337,9 +341,9 @@ if (isset($_GET['success'])) {
                             <label class="block text-sm font-medium text-gray-700 mb-2">Color Secundario</label>
                             <div class="flex gap-2">
                                 <input type="color" name="color_secondary" value="<?php echo htmlspecialchars($viaje['color_secondary'] ?? '#F5A623'); ?>" 
-                                       class="h-10 w-20 rounded border border-gray-300 cursor-pointer">
+                                       class="h-10 w-20 min-w-12 rounded border border-gray-300 cursor-pointer">
                                 <input type="text" value="<?php echo htmlspecialchars($viaje['color_secondary'] ?? '#F5A623'); ?>" 
-                                       readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                                       readonly class="flex-1 px-3 py-2 min-w-24 border border-gray-300 rounded-md bg-gray-50 text-sm">
                             </div>
                             <p class="mt-1 text-xs text-gray-500">Actividades secundarias</p>
                         </div>
@@ -348,9 +352,9 @@ if (isset($_GET['success'])) {
                             <label class="block text-sm font-medium text-gray-700 mb-2">Fondo Claro</label>
                             <div class="flex gap-2">
                                 <input type="color" name="color_bg_light" value="<?php echo htmlspecialchars($viaje['color_bg_light'] ?? '#F4F4F8'); ?>" 
-                                       class="h-10 w-20 rounded border border-gray-300 cursor-pointer">
+                                       class="h-10 w-20 min-w-12 rounded border border-gray-300 cursor-pointer">
                                 <input type="text" value="<?php echo htmlspecialchars($viaje['color_bg_light'] ?? '#F4F4F8'); ?>" 
-                                       readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                                       readonly class="flex-1 px-3 py-2 min-w-24 border border-gray-300 rounded-md bg-gray-50 text-sm">
                             </div>
                             <p class="mt-1 text-xs text-gray-500">Fondo en modo claro</p>
                         </div>
@@ -359,9 +363,9 @@ if (isset($_GET['success'])) {
                             <label class="block text-sm font-medium text-gray-700 mb-2">Fondo Oscuro</label>
                             <div class="flex gap-2">
                                 <input type="color" name="color_bg_dark" value="<?php echo htmlspecialchars($viaje['color_bg_dark'] ?? '#101922'); ?>" 
-                                       class="h-10 w-20 rounded border border-gray-300 cursor-pointer">
+                                       class="h-10 w-20 min-w-12 rounded border border-gray-300 cursor-pointer">
                                 <input type="text" value="<?php echo htmlspecialchars($viaje['color_bg_dark'] ?? '#101922'); ?>" 
-                                       readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                                       readonly class="flex-1 px-3 py-2 min-w-24 border border-gray-300 rounded-md bg-gray-50 text-sm">
                             </div>
                             <p class="mt-1 text-xs text-gray-500">Fondo en modo oscuro</p>
                         </div>
@@ -370,9 +374,9 @@ if (isset($_GET['success'])) {
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tarjetas Claro</label>
                             <div class="flex gap-2">
                                 <input type="color" name="color_card_light" value="<?php echo htmlspecialchars($viaje['color_card_light'] ?? '#FFFFFF'); ?>" 
-                                       class="h-10 w-20 rounded border border-gray-300 cursor-pointer">
+                                       class="h-10 w-20 min-w-12 rounded border border-gray-300 cursor-pointer">
                                 <input type="text" value="<?php echo htmlspecialchars($viaje['color_card_light'] ?? '#FFFFFF'); ?>" 
-                                       readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                                       readonly class="flex-1 px-3 py-2 min-w-24 border border-gray-300 rounded-md bg-gray-50 text-sm">
                             </div>
                             <p class="mt-1 text-xs text-gray-500">Tarjetas en modo claro</p>
                         </div>
@@ -381,9 +385,9 @@ if (isset($_GET['success'])) {
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tarjetas Oscuro</label>
                             <div class="flex gap-2">
                                 <input type="color" name="color_card_dark" value="<?php echo htmlspecialchars($viaje['color_card_dark'] ?? '#1c2c3a'); ?>" 
-                                       class="h-10 w-20 rounded border border-gray-300 cursor-pointer">
+                                       class="h-10 w-20 min-w-12 rounded border border-gray-300 cursor-pointer">
                                 <input type="text" value="<?php echo htmlspecialchars($viaje['color_card_dark'] ?? '#1c2c3a'); ?>" 
-                                       readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                                       readonly class="flex-1 px-3 py-2 min-w-24 border border-gray-300 rounded-md bg-gray-50 text-sm">
                             </div>
                             <p class="mt-1 text-xs text-gray-500">Tarjetas en modo oscuro</p>
                         </div>

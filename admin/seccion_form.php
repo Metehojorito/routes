@@ -79,6 +79,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title><?php echo $id > 0 ? 'Editar' : 'Nueva'; ?> Sección - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="shortcut icon" href="images/favicon.ico">
+	<link rel="icon" href="images/favicon-32x32.png" sizes="32x32" type="image/png">
+	<link rel="icon" href="images/favicon-16x16.png" sizes="16x16" type="image/png">
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
     <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
 <body class="bg-gray-50">
