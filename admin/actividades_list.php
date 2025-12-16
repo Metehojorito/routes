@@ -88,47 +88,54 @@ foreach ($actividades as $actividad) {
         body { font-family: 'Inter', sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .dragging { opacity: 0.5; }
-        .drag-handle { cursor: grab; }
+        .drag-handle { cursor: grab; touch-action: none; }
         .drag-handle:active { cursor: grabbing; }
         .drag-over { border: 2px dashed #3b82f6; background-color: #eff6ff; }
+        
+        /* Mejoras para móvil */
+        @media (max-width: 768px) {
+            .drag-handle { padding: 0.5rem; }
+            .actividad-item { padding: 0.75rem !important; }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
         <header class="bg-white shadow">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <a href="dias_list.php?viaje_id=<?php echo $dia['viaje_id']; ?>" class="text-gray-500 hover:text-gray-700 mr-4">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center min-w-0 flex-1">
+                        <a href="dias_list.php?viaje_id=<?php echo $dia['viaje_id']; ?>" class="text-gray-500 hover:text-gray-700 mr-2 flex-shrink-0">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                             </svg>
                         </a>
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-900">Actividades del Día</h1>
-                            <p class="text-gray-600"><?php echo htmlspecialchars($dia['titulo']); ?></p>
+                        <div class="min-w-0">
+                            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">Actividades</h1>
+                            <p class="text-sm text-gray-600 truncate"><?php echo htmlspecialchars($dia['titulo']); ?></p>
                         </div>
                     </div>
-                    <div class="flex gap-2">
-                        <a href="secciones_list.php?dia_id=<?php echo $dia_id; ?>" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                    <div class="flex gap-1 sm:gap-2 flex-shrink-0">
+                        <a href="secciones_list.php?dia_id=<?php echo $dia_id; ?>" class="bg-purple-600 hover:bg-purple-700 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap">
                             Secciones
                         </a>
-                        <a href="actividad_form.php?dia_id=<?php echo $dia_id; ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
-                            + Nueva Actividad
+                        <a href="actividad_form.php?dia_id=<?php echo $dia_id; ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap">
+                            <span class="hidden sm:inline">+ Nueva</span>
+                            <span class="sm:hidden">+</span>
                         </a>
                     </div>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
             <div class="bg-white shadow rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-xl font-semibold text-gray-900">
+                <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h2 class="text-lg sm:text-xl font-semibold text-gray-900">
                             Actividades (<?php echo count($actividades); ?>)
                         </h2>
-                        <p class="text-sm text-gray-500">Arrastra para reordenar o mover entre secciones</p>
+                        <p class="text-xs sm:text-sm text-gray-500">Arrastra para reordenar</p>
                     </div>
                 </div>
                 
@@ -150,8 +157,8 @@ foreach ($actividades as $actividad) {
                     <!-- Actividades SIN sección -->
                     <?php if (!empty($actividades_sin_seccion)): ?>
                     <div class="seccion-container border-b border-gray-200" data-seccion-id="">
-                        <div class="px-6 py-3 bg-gray-50">
-                            <h3 class="text-sm font-semibold text-gray-600 uppercase">Sin sección</h3>
+                        <div class="px-3 sm:px-6 py-2 sm:py-3 bg-gray-50">
+                            <h3 class="text-xs sm:text-sm font-semibold text-gray-600 uppercase">Sin sección</h3>
                         </div>
                         <div class="actividades-list">
                             <?php foreach ($actividades_sin_seccion as $actividad): ?>
@@ -165,8 +172,8 @@ foreach ($actividades as $actividad) {
                     <?php foreach ($secciones as $seccion): ?>
                         <?php if (isset($actividades_agrupadas[$seccion['id']])): ?>
                         <div class="seccion-container border-b border-gray-200" data-seccion-id="<?php echo $seccion['id']; ?>">
-                            <div class="px-6 py-3 bg-gray-50">
-                                <h3 class="text-sm font-semibold text-gray-600 uppercase"><?php echo htmlspecialchars($seccion['titulo']); ?></h3>
+                            <div class="px-3 sm:px-6 py-2 sm:py-3 bg-gray-50">
+                                <h3 class="text-xs sm:text-sm font-semibold text-gray-600 uppercase"><?php echo htmlspecialchars($seccion['titulo']); ?></h3>
                             </div>
                             <div class="actividades-list">
                                 <?php foreach ($actividades_agrupadas[$seccion['id']]['actividades'] as $actividad): ?>
@@ -183,7 +190,7 @@ foreach ($actividades as $actividad) {
             <div class="mt-6 flex justify-center gap-4">
                 <a href="../dia.php?viaje=<?php echo urlencode($dia['viaje_slug']); ?>&dia=<?php echo $dia['numero_dia']; ?>" 
                    target="_blank"
-                   class="text-blue-600 hover:text-blue-800 font-medium">
+                   class="text-sm sm:text-base text-blue-600 hover:text-blue-800 font-medium">
                     🔍 Ver Vista Pública
                 </a>
             </div>
@@ -191,8 +198,10 @@ foreach ($actividades as $actividad) {
     </div>
 
     <script>
-    // Sistema de drag & drop para actividades
+    // Sistema de drag & drop mejorado para móvil y desktop
     let draggedElement = null;
+    let touchStartY = 0;
+    let isDragging = false;
 
     function initDragAndDrop() {
         const items = document.querySelectorAll('.actividad-item');
@@ -200,12 +209,15 @@ foreach ($actividades as $actividad) {
         items.forEach(item => {
             const handle = item.querySelector('.drag-handle');
             
-            handle.addEventListener('mousedown', () => {
+            // Desktop: Mouse events
+            handle.addEventListener('mousedown', (e) => {
                 item.draggable = true;
+                isDragging = true;
             });
             
             handle.addEventListener('mouseup', () => {
                 item.draggable = false;
+                isDragging = false;
             });
             
             item.addEventListener('dragstart', (e) => {
@@ -217,6 +229,7 @@ foreach ($actividades as $actividad) {
             item.addEventListener('dragend', () => {
                 item.classList.remove('dragging');
                 item.draggable = false;
+                isDragging = false;
                 
                 // Quitar highlight de todas las secciones
                 document.querySelectorAll('.seccion-container').forEach(sec => {
@@ -225,6 +238,54 @@ foreach ($actividades as $actividad) {
                 
                 updateOrder();
             });
+            
+            // Mobile: Touch events
+            handle.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 1) return;
+                
+                e.preventDefault();
+                draggedElement = item;
+                touchStartY = e.touches[0].clientY;
+                item.classList.add('dragging');
+                isDragging = true;
+            }, { passive: false });
+            
+            handle.addEventListener('touchmove', (e) => {
+                if (!isDragging || !draggedElement) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const currentY = touch.clientY;
+                
+                // Mover el elemento visualmente
+                item.style.transform = `translateY(${currentY - touchStartY}px)`;
+                
+                // Encontrar el elemento sobre el que estamos
+                const afterElement = getDragAfterElementTouch(item.parentElement, currentY);
+                const container = item.closest('.actividades-list');
+                
+                if (afterElement == null) {
+                    container.appendChild(draggedElement);
+                } else {
+                    container.insertBefore(draggedElement, afterElement);
+                }
+            }, { passive: false });
+            
+            handle.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                item.classList.remove('dragging');
+                item.style.transform = '';
+                isDragging = false;
+                
+                document.querySelectorAll('.seccion-container').forEach(sec => {
+                    sec.classList.remove('drag-over');
+                });
+                
+                updateOrder();
+                draggedElement = null;
+            }, { passive: false });
         });
         
         // Permitir drop en las listas de actividades
@@ -262,6 +323,23 @@ foreach ($actividades as $actividad) {
         const draggableElements = [...container.querySelectorAll('.actividad-item:not(.dragging)')];
         
         return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+    
+    function getDragAfterElementTouch(container, y) {
+        const draggableElements = [...container.querySelectorAll('.actividad-item:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            if (child === draggedElement) return closest;
+            
             const box = child.getBoundingClientRect();
             const offset = y - box.top - box.height / 2;
             

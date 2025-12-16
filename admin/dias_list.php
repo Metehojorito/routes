@@ -63,34 +63,39 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         body { font-family: 'Inter', sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .dragging { opacity: 0.5; }
-        .drag-handle { cursor: grab; }
+        .drag-handle { cursor: grab; touch-action: none; }
         .drag-handle:active { cursor: grabbing; }
+        
+        @media (max-width: 768px) {
+            .drag-handle { padding: 0.5rem; }
+            .dia-item { padding: 0.75rem !important; }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
         <header class="bg-white shadow">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <a href="index.php" class="text-gray-500 hover:text-gray-700 mr-4">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="flex items-center min-w-0 w-full sm:w-auto">
+                        <a href="index.php" class="text-gray-500 hover:text-gray-700 mr-2 sm:mr-4 flex-shrink-0">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                             </svg>
                         </a>
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-900">Días del Viaje</h1>
-                            <p class="text-gray-600"><?php echo htmlspecialchars($viaje['titulo']); ?></p>
+                        <div class="min-w-0">
+                            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">Días del Viaje</h1>
+                            <p class="text-sm text-gray-600 truncate"><?php echo htmlspecialchars($viaje['titulo']); ?></p>
                         </div>
                     </div>
-                    <a href="dia_form.php?viaje_id=<?php echo $viaje_id; ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                    <a href="dia_form.php?viaje_id=<?php echo $viaje_id; ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition w-full sm:w-auto text-center whitespace-nowrap">
                         + Nuevo Día
                     </a>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
             <?php if (isset($_SESSION['import_success'])): ?>
             <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
                 <div class="flex">
@@ -116,20 +121,23 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                 </div>
             </div>
             <?php endif; ?>
+            
             <div class="bg-white shadow rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h2 class="text-xl font-semibold text-gray-900">
-                        Itinerario - <?php echo count($dias); ?> días
-                    </h2>
-                    <div class="flex items-center gap-4">
-                        <p class="text-sm text-gray-500">Arrastra para reordenar</p>
-                        <div class="flex gap-2">
-                            <a href="alojamiento_form.php?viaje_id=<?php echo $viaje_id; ?>" class="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded font-medium transition">
-                                Alojamiento
-                            </a>
-                            <a href="contactos_form.php?viaje_id=<?php echo $viaje_id; ?>" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded font-medium transition">
-                                Emergencias
-                            </a>
+                <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+                        <h2 class="text-lg sm:text-xl font-semibold text-gray-900">
+                            Itinerario - <?php echo count($dias); ?> días
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            <p class="text-xs sm:text-sm text-gray-500">Arrastra para reordenar</p>
+                            <div class="flex gap-1 sm:gap-2">
+                                <a href="alojamiento_form.php?viaje_id=<?php echo $viaje_id; ?>" class="text-xs sm:text-sm bg-green-600 hover:bg-green-700 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded font-medium transition whitespace-nowrap">
+                                    🏠 Aloj.
+                                </a>
+                                <a href="contactos_form.php?viaje_id=<?php echo $viaje_id; ?>" class="text-xs sm:text-sm bg-red-600 hover:bg-red-700 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded font-medium transition whitespace-nowrap">
+                                    🚨 Emerg.
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -155,65 +163,72 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                         $dia_num = $fecha->format('d');
                         $dia_semana = $dias_semana[(int)$fecha->format('w')];
                     ?>
-                    <div class="dia-item px-6 py-4 hover:bg-gray-50 transition" data-id="<?php echo $dia['id']; ?>">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4 flex-1">
+                    <div class="dia-item px-3 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition" data-id="<?php echo $dia['id']; ?>">
+                        <div class="flex flex-col sm:flex-row items-start gap-3">
+                            <!-- Handle y fecha -->
+                            <div class="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto">
                                 <div class="drag-handle text-gray-400 hover:text-gray-600">
-                                    <span class="material-symbols-outlined">drag_indicator</span>
+                                    <span class="material-symbols-outlined text-xl sm:text-2xl">drag_indicator</span>
                                 </div>
-                                <div class="flex-shrink-0 w-16 h-16 bg-blue-100 rounded-lg flex flex-col items-center justify-center">
+                                <div class="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-lg flex flex-col items-center justify-center">
                                     <span class="text-xs font-semibold text-blue-600"><?php echo strtoupper($mes); ?></span>
-                                    <span class="text-2xl font-bold text-blue-700"><?php echo $dia_num; ?></span>
+                                    <span class="text-xl sm:text-2xl font-bold text-blue-700"><?php echo $dia_num; ?></span>
                                 </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-2">
-                                        <h3 class="text-lg font-semibold text-gray-900"><?php echo htmlspecialchars($dia['titulo']); ?></h3>
-                                        <span class="text-sm text-gray-500">• Día <?php echo $dia['numero_dia']; ?></span>
+                                
+                                <!-- Info principal -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 break-words"><?php echo htmlspecialchars($dia['titulo']); ?></h3>
+                                        <span class="text-xs sm:text-sm text-gray-500 whitespace-nowrap">• Día <?php echo $dia['numero_dia']; ?></span>
                                     </div>
-                                    <p class="text-sm text-gray-600 mt-1"><?php echo $dia_semana; ?>, <?php echo $fecha->format('d/m/Y'); ?></p>
-                                    <div class="flex gap-2 mt-2">
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 orden-badge">
-                                            Orden: <?php echo $dia['orden']; ?>
+                                    <p class="text-xs sm:text-sm text-gray-600 mt-1"><?php echo $dia_semana; ?>, <?php echo $fecha->format('d/m/Y'); ?></p>
+                                    
+                                    <!-- Badges -->
+                                    <div class="flex flex-wrap gap-1 sm:gap-2 mt-2">
+                                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700 orden-badge whitespace-nowrap">
+                                            #<?php echo $dia['orden']; ?>
                                         </span>
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
-                                            <?php echo $dia['total_secciones']; ?> secciones
+                                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-800 whitespace-nowrap">
+                                            <?php echo $dia['total_secciones']; ?> secc.
                                         </span>
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                            <?php echo $dia['total_actividades']; ?> actividades
+                                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800 whitespace-nowrap">
+                                            <?php echo $dia['total_actividades']; ?> act.
                                         </span>
-										<span class="px-2 py-1 text-xs font-medium rounded-full <?php echo $dia['visible'] ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; ?>">
-											<?php echo $dia['visible'] ? 'Visible' : 'Oculto'; ?>
-										</span>
+                                        <span class="px-2 py-0.5 text-xs font-medium rounded-full <?php echo $dia['visible'] ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; ?> whitespace-nowrap">
+                                            <?php echo $dia['visible'] ? 'Visible' : 'Oculto'; ?>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-1">
+                            
+                            <!-- Acciones -->
+                            <div class="flex items-center space-x-1 ml-auto">
                                 <a href="../dia.php?viaje=<?php echo urlencode($viaje['slug']); ?>&dia=<?php echo $dia['numero_dia']; ?>" 
                                    target="_blank" 
-                                   class="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50 transition"
-                                   title="Ver vista pública">
-                                    <span class="material-symbols-outlined">visibility</span>
+                                   class="text-blue-600 hover:text-blue-900 p-1.5 sm:p-2 rounded hover:bg-blue-50 transition"
+                                   title="Ver">
+                                    <span class="material-symbols-outlined text-lg sm:text-xl">visibility</span>
                                 </a>
                                 <a href="secciones_list.php?dia_id=<?php echo $dia['id']; ?>" 
-                                   class="text-purple-600 hover:text-purple-900 p-2 rounded hover:bg-purple-50 transition"
-                                   title="Gestionar secciones">
-                                    <span class="material-symbols-outlined">segment</span>
+                                   class="text-purple-600 hover:text-purple-900 p-1.5 sm:p-2 rounded hover:bg-purple-50 transition"
+                                   title="Secciones">
+                                    <span class="material-symbols-outlined text-lg sm:text-xl">segment</span>
                                 </a>
                                 <a href="actividades_list.php?dia_id=<?php echo $dia['id']; ?>" 
-                                   class="text-green-600 hover:text-green-900 p-2 rounded hover:bg-green-50 transition"
-                                   title="Gestionar actividades">
-                                    <span class="material-symbols-outlined">list</span>
+                                   class="text-green-600 hover:text-green-900 p-1.5 sm:p-2 rounded hover:bg-green-50 transition"
+                                   title="Actividades">
+                                    <span class="material-symbols-outlined text-lg sm:text-xl">list</span>
                                 </a>
                                 <a href="dia_form.php?id=<?php echo $dia['id']; ?>" 
-                                   class="text-indigo-600 hover:text-indigo-900 p-2 rounded hover:bg-indigo-50 transition"
-                                   title="Editar día">
-                                    <span class="material-symbols-outlined">edit</span>
+                                   class="text-indigo-600 hover:text-indigo-900 p-1.5 sm:p-2 rounded hover:bg-indigo-50 transition"
+                                   title="Editar">
+                                    <span class="material-symbols-outlined text-lg sm:text-xl">edit</span>
                                 </a>
                                 <a href="dia_delete.php?id=<?php echo $dia['id']; ?>" 
                                    onclick="return confirm('¿Eliminar este día y todas sus actividades?')" 
-                                   class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"
-                                   title="Eliminar día">
-                                    <span class="material-symbols-outlined">delete</span>
+                                   class="text-red-600 hover:text-red-900 p-1.5 sm:p-2 rounded hover:bg-red-50 transition"
+                                   title="Eliminar">
+                                    <span class="material-symbols-outlined text-lg sm:text-xl">delete</span>
                                 </a>
                             </div>
                         </div>
@@ -226,9 +241,11 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     </div>
 
     <script>
-    // Sistema de drag & drop para reordenar días
+    // Sistema de drag & drop mejorado para móvil y desktop
     const container = document.getElementById('diasContainer');
     let draggedElement = null;
+    let touchStartY = 0;
+    let isDragging = false;
 
     if (container) {
         const items = container.querySelectorAll('.dia-item');
@@ -236,12 +253,15 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         items.forEach(item => {
             const handle = item.querySelector('.drag-handle');
             
+            // Desktop: Mouse events
             handle.addEventListener('mousedown', () => {
                 item.draggable = true;
+                isDragging = true;
             });
             
             handle.addEventListener('mouseup', () => {
                 item.draggable = false;
+                isDragging = false;
             });
             
             item.addEventListener('dragstart', (e) => {
@@ -253,6 +273,7 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
             item.addEventListener('dragend', () => {
                 item.classList.remove('dragging');
                 item.draggable = false;
+                isDragging = false;
             });
             
             item.addEventListener('dragover', (e) => {
@@ -264,6 +285,46 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
                     container.insertBefore(draggedElement, afterElement);
                 }
             });
+            
+            // Mobile: Touch events
+            handle.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 1) return;
+                e.preventDefault();
+                
+                draggedElement = item;
+                touchStartY = e.touches[0].clientY;
+                item.classList.add('dragging');
+                isDragging = true;
+            }, { passive: false });
+            
+            handle.addEventListener('touchmove', (e) => {
+                if (!isDragging || !draggedElement) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const currentY = touch.clientY;
+                
+                item.style.transform = `translateY(${currentY - touchStartY}px)`;
+                
+                const afterElement = getDragAfterElementTouch(container, currentY);
+                if (afterElement == null) {
+                    container.appendChild(draggedElement);
+                } else {
+                    container.insertBefore(draggedElement, afterElement);
+                }
+            }, { passive: false });
+            
+            handle.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                item.classList.remove('dragging');
+                item.style.transform = '';
+                isDragging = false;
+                
+                updateOrder();
+                draggedElement = null;
+            }, { passive: false });
         });
         
         container.addEventListener('dragend', () => {
@@ -285,6 +346,23 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
             }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
+    
+    function getDragAfterElementTouch(container, y) {
+        const draggableElements = [...container.querySelectorAll('.dia-item:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            if (child === draggedElement) return closest;
+            
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
 
     function updateOrder() {
         const items = container.querySelectorAll('.dia-item');
@@ -294,12 +372,10 @@ $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
             const id = item.dataset.id;
             orders[id] = index + 1;
             
-            // Actualizar el número visual
             const badge = item.querySelector('.orden-badge');
-            if (badge) badge.textContent = 'Orden: ' + (index + 1);
+            if (badge) badge.textContent = '#' + (index + 1);
         });
         
-        // Enviar al servidor
         fetch(window.location.href, {
             method: 'POST',
             headers: {

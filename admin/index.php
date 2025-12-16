@@ -18,10 +18,10 @@ $viajes = $stmt->fetchAll();
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-	<link rel="shortcut icon" href="images/favicon.ico">
-	<link rel="icon" href="images/favicon-32x32.png" sizes="32x32" type="image/png">
-	<link rel="icon" href="images/favicon-16x16.png" sizes="16x16" type="image/png">
-	<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <link rel="icon" href="../images/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="../images/favicon-16x16.png" sizes="16x16" type="image/png">
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
     <style>
         body { font-family: 'Inter', sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -29,22 +29,24 @@ $viajes = $stmt->fetchAll();
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
-        <!-- Header -->
+        <!-- Header Responsive -->
         <header class="bg-white shadow">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div class="flex justify-between items-center">
-                    <h1 class="text-3xl font-bold text-gray-900">Panel de Administración</h1>
-                    <div class="flex items-center gap-4">
-                        <span class="text-sm text-gray-600">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Panel de Administración</h1>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+                        <span class="text-sm text-gray-600 text-center sm:text-left">
                             👤 <?php echo htmlspecialchars($_SESSION['admin_username']); ?>
                         </span>
-                        <a href="cambiar_password.php" class="text-sm text-gray-600 hover:text-gray-900 font-medium">
-                            🔑 Cambiar Contraseña
-                        </a>
-                        <a href="logout.php" class="text-sm text-red-600 hover:text-red-800 font-medium">
-                            Cerrar Sesión
-                        </a>
-                        <a href="viaje_form.php" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                        <div class="flex gap-2">
+                            <a href="cambiar_password.php" class="flex-1 sm:flex-none text-sm text-center text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100">
+                                🔑 Cambiar Contraseña
+                            </a>
+                            <a href="logout.php" class="flex-1 sm:flex-none text-sm text-center text-red-600 hover:text-red-800 font-medium px-3 py-2 rounded-md hover:bg-red-50">
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                        <a href="viaje_form.php" class="bg-blue-600 hover:bg-blue-700 text-white text-center px-4 py-2 rounded-lg font-medium transition">
                             + Nuevo Viaje
                         </a>
                     </div>
@@ -53,9 +55,9 @@ $viajes = $stmt->fetchAll();
         </header>
 
         <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <!-- Stats Cards - Responsive Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div class="bg-white rounded-lg shadow p-6">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
@@ -103,14 +105,14 @@ $viajes = $stmt->fetchAll();
                 </div>
             </div>
 
-            <!-- Viajes Table -->
+            <!-- Viajes Table with Responsive Scroll -->
             <div class="bg-white shadow rounded-lg overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-900">Mis Viajes</h2>
+                <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-900">Mis Viajes</h2>
                 </div>
                 
                 <?php if (empty($viajes)): ?>
-                <div class="px-6 py-12 text-center">
+                <div class="px-4 sm:px-6 py-12 text-center">
                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                     </svg>
@@ -123,15 +125,16 @@ $viajes = $stmt->fetchAll();
                     </div>
                 </div>
                 <?php else: ?>
+                <!-- Scroll horizontal en móvil -->
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Viaje</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Días</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Viaje</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Días</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -140,7 +143,7 @@ $viajes = $stmt->fetchAll();
                                 $fecha_fin = new DateTime($viaje['fecha_fin']);
                             ?>
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div>
                                             <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($viaje['titulo']); ?></div>
@@ -148,23 +151,23 @@ $viajes = $stmt->fetchAll();
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900"><?php echo $fecha_inicio->format('d/m/Y'); ?></div>
                                     <div class="text-sm text-gray-500">a <?php echo $fecha_fin->format('d/m/Y'); ?></div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                         <?php echo $viaje['total_dias']; ?> días
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                                     <?php if ($viaje['activo']): ?>
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activo</span>
                                     <?php else: ?>
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Inactivo</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="../index.php?viaje=<?php echo urlencode($viaje['slug']); ?>" 
                                            target="_blank" 
