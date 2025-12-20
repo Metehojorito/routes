@@ -759,30 +759,131 @@ if (!empty($viaje['pin_mapa'])) {
     }
     
     // ==========================================
-    // OPCIÓN: COMPARTIR ITINERARIO
-    // ==========================================
-    document.getElementById('btnShare').addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const shareUrl = `${window.location.origin}${window.location.pathname}?viaje=<?php echo urlencode($viaje['slug']); ?>&dia=<?php echo $numero_dia; ?>`;
+	// OPCIÓN: COMPARTIR ITINERARIO
+	// ==========================================
+	document.getElementById('btnShare').addEventListener('click', async (e) => {
+		e.stopPropagation();
+		const shareUrl = `${window.location.origin}${window.location.pathname}?viaje=<?php echo urlencode($viaje['slug']); ?>&dia=<?php echo $numero_dia; ?>`;
 
-        try {
-            if (navigator.share) {
-                await navigator.share({
-                    title: '<?php echo htmlspecialchars($dia['titulo']); ?>',
-                    text: 'Mira el itinerario del día <?php echo $numero_dia; ?> de nuestro viaje',
-                    url: shareUrl
-                });
-                showToast('¡Compartido!');
-            } else {
-                await navigator.clipboard.writeText(shareUrl);
-                showToast('¡URL copiada al portapapeles!');
-            }
-        } catch (err) {
-            console.error('Error al compartir:', err);
-        }
+		try {
+			// Intentar primero con la API de compartir nativa (funciona sin HTTPS en móviles)
+			if (navigator.share) {
+				await navigator.share({
+					title: '<?php echo htmlspecialchars($dia['titulo']); ?>',
+					text: 'Mira el itinerario del día <?php echo $numero_dia; ?> de nuestro viaje',
+					url: shareUrl
+				});
+				showToast('¡Compartido!');
+			} 
+			// Fallback: copiar con método antiguo (funciona sin HTTPS)
+			else {
+				// Crear input temporal
+				const tempInput = document.createElement('input');
+				tempInput.value = shareUrl;
+				tempInput.style.position = 'absolute';
+				tempInput.style.left = '-9999px';
+				tempInput.style.top = '0';
+				document.body.appendChild(tempInput);
+				
+				// Seleccionar y copiar
+				tempInput.focus();
+				tempInput.select();
+				tempInput.setSelectionRange(0, 99999); // Para dispositivos móviles
+				
+				let successful = false;
+				try {
+					successful = document.execCommand('copy');
+				} catch (err) {
+					successful = false;
+				}
+				
+				document.body.removeChild(tempInput);
+				
+				if (successful) {
+					showToast('¡URL copiada al portapapeles!');
+				} else {
+					// Si falla, mostrar un modal o prompt
+					showShareModal(shareUrl);
+				}
+			}
+		} catch (err) {
+			console.error('Error al compartir:', err);
+			if (err.name !== 'AbortError') {
+				// Si no es cancelación del usuario, mostrar modal
+				showShareModal(shareUrl);
+			}
+		}
 
-        closeMenu();
-    });
+		closeMenu();
+	});
+
+	// Función para mostrar modal de compartir cuando falla todo lo demás
+	function showShareModal(url) {
+		// Crear modal
+		const modal = document.createElement('div');
+		modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
+		modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+		modal.innerHTML = `
+			<div class="bg-white dark:bg-card-dark rounded-lg shadow-xl p-6 max-w-md w-full">
+				<h3 class="text-lg font-bold text-text-light-primary dark:text-text-dark-primary mb-4">
+					Compartir itinerario
+				</h3>
+				<p class="text-sm text-text-light-secondary dark:text-text-dark-secondary mb-4">
+					Copia este enlace para compartir:
+				</p>
+				<div class="flex gap-2 mb-4">
+					<input type="text" value="${url}" readonly 
+						class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-sm text-text-light-primary dark:text-text-dark-primary"
+						id="shareUrlInput">
+					<button onclick="copyFromModal()" 
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors">
+						Copiar
+					</button>
+				</div>
+				<button onclick="closeShareModal()" 
+					class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-text-light-primary dark:text-text-dark-primary rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+					Cerrar
+				</button>
+			</div>
+		`;
+		
+		document.body.appendChild(modal);
+		
+		// Seleccionar el texto automáticamente
+		setTimeout(() => {
+			document.getElementById('shareUrlInput').select();
+		}, 100);
+		
+		// Cerrar al hacer click fuera
+		modal.addEventListener('click', (e) => {
+			if (e.target === modal) {
+				closeShareModal();
+			}
+		});
+	}
+
+	// Función global para copiar desde el modal
+	window.copyFromModal = function() {
+		const input = document.getElementById('shareUrlInput');
+		input.select();
+		input.setSelectionRange(0, 99999);
+		
+		try {
+			document.execCommand('copy');
+			showToast('¡URL copiada!');
+			closeShareModal();
+		} catch (err) {
+			showToast('Selecciona y copia manualmente (Ctrl+C)');
+		}
+	};
+
+	// Función global para cerrar el modal
+	window.closeShareModal = function() {
+		const modal = document.querySelector('.fixed.inset-0.z-50');
+		if (modal) {
+			modal.remove();
+		}
+	};
     
     // ==========================================
     // OPCIÓN: VER TODAS EN GOOGLE MAPS
