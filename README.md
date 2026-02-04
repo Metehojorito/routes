@@ -13,9 +13,10 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 
 - **Gestión Completa de Viajes**: Crea y administra múltiples viajes con información detallada
 - **Itinerarios por Días**: Organiza actividades día a día con secciones personalizables
-- **🆕 Mapas con Leaflet + OpenStreetMap**: Sin API key, 100% gratuito, más rápido
+- **🗺️ Mapas con Leaflet + CartoDB**: Tiles limpios y minimalistas, sin API key, 100% gratuito
 - **📍 Location Picker Interactivo**: Selecciona ubicaciones con un click en el mapa
 - **🎨 Pines Personalizados**: Sube tu propio pin (GIF/PNG/WebP) para cada viaje
+- **🔊 Descripciones de Audio**: Agrega textos que se leen en voz alta con síntesis de voz
 - **Diseño Responsive**: Interfaz optimizada para móviles y tablets
 - **Modo Oscuro/Claro**: Tema adaptable según preferencias del usuario
 - **Personalización Visual**: Paleta de colores configurable por viaje con 8 plantillas predefinidas
@@ -28,18 +29,24 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 - Menú lateral con información de alojamiento y contactos de emergencia
 - Listado de días del viaje con información detallada
 - Vista de día individual con:
-  - **🗺️ Mapa interactivo Leaflet** con marcadores de ubicaciones
+  - **🗺️ Mapa interactivo Leaflet** con tiles de CartoDB (diseño limpio)
   - Pines personalizados por viaje
   - Actividades organizadas por secciones (Mañana, Tarde, Noche, etc.)
+  - **🔊 Botón de audio** para escuchar descripciones en voz alta
   - Detalles adicionales (horarios, precios, confirmaciones)
   - Enlaces directos a Google Maps para navegación
+  - **FAB (Floating Action Button)** con opciones rápidas:
+    - 📤 Compartir itinerario
+    - 🗺️ Ver todas las ubicaciones en Google Maps
+    - 🖨️ Imprimir itinerario
+    - 📅 Añadir a calendario (.ics)
 
 ### 🔐 Panel de Administración
 
 #### Gestión de Viajes
 - Crear/editar/eliminar viajes
 - Subida de imagen de portada
-- **🆕 Subida de pin personalizado** para mapas (GIF/PNG/WebP)
+- **🎨 Subida de pin personalizado** para mapas (GIF/PNG/WebP)
 - Configuración de fechas y slug único
 - Importación de archivo KMZ/KML donde se asignan las capas a días del viaje
 - Personalización de colores con 8 plantillas predefinidas:
@@ -54,7 +61,7 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 
 #### Gestión de Días
 - Crear días del viaje con título y descripción
-- **🆕 Location Picker**: Selecciona el centro del mapa con un click
+- **📍 Location Picker con CartoDB**: Selecciona el centro del mapa con un click
 - Configurar zoom del mapa
 - Ordenar días mediante drag & drop
 - Vista previa de cada día
@@ -65,14 +72,15 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 
 #### Gestión de Actividades
 - Crear actividades con icono y descripción
-- **🆕 Location Picker**: Selecciona ubicación en mapa interactivo
+- **📍 Location Picker con CartoDB**: Selecciona ubicación en mapa interactivo
+- **🔊 Descripción Auditiva**: Campo opcional para texto que será leído en voz alta
 - Agregar detalles adicionales (horarios, precios, etc.)
 - Selector visual de iconos Material Symbols
 - Mover actividades entre secciones con drag & drop
 - Reordenar dentro de cada sección
 
 #### Información Adicional
-- **Alojamientos**: Guarda información de hoteles/apartamentos con **Location Picker**
+- **Alojamientos**: Guarda información de hoteles/apartamentos con **Location Picker (CartoDB)**
 - **Contactos de Emergencia**: Números importantes (112, policía, embajada, hotel)
 
 ## 🛠️ Tecnologías Utilizadas
@@ -87,8 +95,9 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 - **TailwindCSS**: Framework CSS utility-first
 - **JavaScript Vanilla**: Interactividad sin dependencias
 - **Material Symbols**: Librería de iconos de Google
-- **🆕 Leaflet 1.9.4**: Mapas interactivos sin API key
-- **🆕 OpenStreetMap**: Tiles de mapa gratuitos
+- **🗺️ Leaflet 1.9.4**: Mapas interactivos sin API key
+- **🗺️ CartoDB Tiles**: Tiles de mapa limpios y minimalistas
+- **🔊 Web Speech API**: Síntesis de voz nativa del navegador
 
 ### Características Técnicas
 - **Drag & Drop nativo HTML5**: Sin librerías externas
@@ -96,7 +105,8 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
 - **PWA-ready**: Optimizado para funcionar como app
 - **AJAX**: Actualizaciones sin recargar página
 - **Session Management**: Sistema de sesiones PHP
-- **🆕 Location Picker**: Componente reutilizable para selección de ubicaciones
+- **📍 Location Picker**: Componente reutilizable para selección de ubicaciones
+- **🔊 Text-to-Speech**: Lectura de voz sin dependencias externas
 
 ## 📋 Requisitos del Sistema
 
@@ -109,6 +119,9 @@ Sistema web completo para planificar, gestionar y visualizar itinerarios de viaj
   - mbstring
   - fileinfo
   - gd (opcional, para manipulación de imágenes)
+- Navegador moderno con soporte para:
+  - Web Speech API (para audio)
+  - ES6+ JavaScript
 
 ## 🚀 Instalación
 
@@ -142,12 +155,16 @@ define('DB_USER', 'tu_usuario');
 define('DB_PASS', 'tu_contraseña');
 ```
 
-### 4. 🆕 Migración: Pin Personalizado (Nuevo)
+### 4. 🆕 Migraciones (Nuevas características)
 
-Si actualizas desde una versión anterior, ejecuta:
+Si actualizas desde una versión anterior, ejecuta las migraciones:
 
 ```bash
+# Pin personalizado
 mysql -u root -p gestor_viajes < add_pin_mapa_field.sql
+
+# 🔊 Descripción auditiva
+mysql -u root -p gestor_viajes < agregar_descripcion_auditiva.sql
 ```
 
 ### 5. Configurar permisos
@@ -158,7 +175,7 @@ mkdir -p images
 chmod 755 images
 chown www-data:www-data images  # En producción
 
-# 🆕 Las carpetas de pines se crean automáticamente
+# Las carpetas de pines se crean automáticamente
 # images/[viaje_id]/maps/ se genera al subir el primer pin
 ```
 
@@ -179,7 +196,7 @@ gestor-viajes/
 │   ├── js/                   # JavaScript del admin
 │   │   ├── icons-library.js  # Librería de iconos
 │   │   ├── icon-picker.js    # Selector de iconos
-│   │   └── location-picker.js # 🆕 Selector de ubicación con mapa
+│   │   └── location-picker.js # 🗺️ Selector de ubicación con CartoDB
 │   ├── partials/             # Componentes reutilizables
 │   │   └── actividad_item.php
 │   ├── index.php             # Dashboard principal
@@ -187,18 +204,20 @@ gestor-viajes/
 │   ├── viaje_form.php        # Formulario de viajes
 │   ├── dias_list.php         # Listado de días
 │   ├── actividades_list.php  # Listado de actividades
+│   ├── actividad_form.php    # 🔊 Formulario con campo de audio
 │   └── ...                   # Otros archivos del admin
 ├── config/
 │   └── database.php          # Configuración de BD
 ├── images/                   # Imágenes subidas (auto-creada)
 │   └── [viaje_id]/
 │       ├── portada/          # Imágenes de portada
-│       └── maps/             # 🆕 Pines personalizados
+│       └── maps/             # 🎨 Pines personalizados
 ├── index.php                 # Portada pública
 ├── menu.php                  # Menú de días del viaje
-├── dia.php                   # Vista de día individual (Leaflet)
+├── dia.php                   # 🗺️ Vista de día (Leaflet + CartoDB + Audio)
 ├── gestor_viajes.sql         # Schema de la base de datos
-├── add_pin_mapa_field.sql    # 🆕 Migración para pines
+├── add_pin_mapa_field.sql    # Migración para pines
+├── agregar_descripcion_auditiva.sql # 🔊 Migración para audio
 └── README.md                 # Este archivo
 ```
 
@@ -214,7 +233,7 @@ Cada viaje puede tener su propia paleta de colores. Se configuran 6 colores:
 - **Card Light**: Tarjetas en modo claro
 - **Card Dark**: Tarjetas en modo oscuro
 
-### 🆕 Pines Personalizados
+### 🎨 Pines Personalizados
 
 Cada viaje puede tener su propio pin para los mapas:
 
@@ -238,71 +257,106 @@ El sistema incluye más de 150 iconos organizados en categorías:
 
 Para agregar nuevos iconos, edita `admin/js/icons-library.js`.
 
-## 🗺️ Mapas: Leaflet vs Google Maps
+## 🗺️ Mapas: Leaflet + CartoDB
 
-El proyecto incluye **dos versiones** de mapas:
+El proyecto utiliza **Leaflet con tiles de CartoDB** para un diseño limpio y profesional.
 
-### ✅ Leaflet + OpenStreetMap (Recomendado - Por Defecto)
-
-**Archivo**: `dia.php`
+### ✅ Leaflet + CartoDB (Por Defecto)
 
 **Ventajas**:
 - ✅ **100% GRATIS** - Sin API keys ni límites
 - ✅ **Sin configuración** - Funciona inmediatamente
-- ✅ **Más rápido** - Librería 62% más ligera
+- ✅ **Más rápido** - Librería 62% más ligera que Google Maps
+- ✅ **Diseño limpio** - CartoDB ofrece tiles minimalistas
 - ✅ **Soporta WebP** - Para pines personalizados
-- ✅ **Múltiples estilos** - 5+ estilos de mapa incluidos
 - ✅ **Privacidad** - Sin tracking de Google
 
-**Estilos disponibles** (cambiar en línea ~226 de dia.php):
+### 🗺️ Tiles de CartoDB
+
+**URL del tile** (usado en `dia.php`):
 ```javascript
-// OpenStreetMap (por defecto - claro)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-
-// CartoDB Dark Matter (modo oscuro elegante)
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png')
-
-// CartoDB Positron (minimalista claro)
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png')
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 20
+})
 ```
+
+**Características**:
+- Diseño minimalista sin sobrecargar
+- Colores suaves y profesionales
+- Etiquetas legibles
+- Ideal para overlays de datos
 
 ### 📍 Location Picker (Admin)
 
 **Archivo**: `admin/js/location-picker.js`
 
-Selector de ubicación interactivo para formularios del admin:
+Selector de ubicación interactivo para formularios del admin con **CartoDB tiles**.
 
 **Características**:
-- 🗺️ Mapa interactivo en formularios
+- 🗺️ Mapa interactivo en formularios con diseño limpio
 - 🎯 Click para seleccionar ubicación
 - 🔄 Sincronización bidireccional (mapa ↔ inputs)
 - 🎯 Arrastrar marcador para ajustar
 - ✅ Sin API key necesaria
+- 🎨 Opción `useCartoDB: true` para tiles limpios
 
 **Se usa en**:
 - `actividad_form.php` - Ubicar actividades
 - `dia_form.php` - Definir centro del mapa
 - `alojamiento_form.php` - Ubicar hoteles
 
-Ver `GUIA_LOCATION_PICKER.md` para implementación completa.
-
-### ⚠️ Google Maps (Alternativo)
-
-Si prefieres Google Maps, sigue estos pasos:
-
-1. **Obtén API Key**: [Google Cloud Console](https://console.cloud.google.com/)
-2. **Habilita**: "Maps JavaScript API"
-3. **Configura** en la base de datos:
-
-```sql
-INSERT INTO configuracion (clave, valor) 
-VALUES ('google_maps_api_key', 'TU_API_KEY_AQUI')
-ON DUPLICATE KEY UPDATE valor = 'TU_API_KEY_AQUI';
+**Ejemplo de uso**:
+```javascript
+const picker = createLocationPicker('map-container', 'lat', 'lng', {
+    initialLat: 51.8143,
+    initialLng: 4.6650,
+    initialZoom: 14,
+    useCartoDB: true  // Usar tiles de CartoDB
+});
 ```
 
-4. **Reemplaza** `dia.php` por la versión con Google Maps (no incluida por defecto)
+## 🔊 Sistema de Audio
 
-**Nota**: Google Maps requiere facturación después de cierto uso. Leaflet es completamente gratis.
+### Descripciones Auditivas
+
+Las actividades pueden incluir un texto que será leído en voz alta mediante **Web Speech API**.
+
+**Características**:
+- 🔊 **Síntesis de voz nativa** del navegador (sin APIs externas)
+- ▶️ Botón de reproducción/pausa
+- 🎯 Solo aparece si hay descripción auditiva
+- 🔄 Cambio automático entre audios
+- 🛑 Reset al iniciar otro audio
+- 🖨️ Se oculta automáticamente al imprimir
+
+### Uso en el Admin
+
+1. Edita una actividad en `actividad_form.php`
+2. Rellena el campo **"🔊 Descripción Auditiva"**
+3. El texto será leído en voz alta en la vista pública
+
+**Ejemplo de texto**:
+```
+Salida a las 7 de la mañana desde el aeropuerto de Sevilla 
+con destino a Róterdam. Vuelo operado por Ryanair. 
+Duración aproximada: 3 horas. Llegada prevista a las 10:00 
+hora local.
+```
+
+### Compatibilidad
+
+**Navegadores soportados**:
+- ✅ Chrome/Edge (excelente)
+- ✅ Safari (bueno)
+- ✅ Firefox (bueno)
+- ⚠️ Opera (limitado)
+
+**Idiomas**:
+- Configurado en español (`es-ES`)
+- Velocidad: 0.9x (más natural)
+- Tono: Normal
 
 ## 🔒 Seguridad
 
@@ -340,23 +394,19 @@ chown www-data:www-data images -R
 
 ### Mapas no se muestran
 
-**Con Leaflet (por defecto)**:
+**Con Leaflet + CartoDB (por defecto)**:
 - ✅ No necesita configuración, debería funcionar inmediatamente
 - Verifica la consola del navegador para errores de JavaScript
+- Comprueba que los archivos de Leaflet estén cargados
 
-**Con Google Maps (si lo usas)**:
-1. Verifica que la API Key esté configurada en la BD
-2. Comprueba que la API esté habilitada en Google Cloud Console
-3. Revisa la consola del navegador para errores
-
-### 🆕 Location Picker no funciona
+### 📍 Location Picker no funciona
 
 1. Verifica que `location-picker.js` esté en `/admin/js/`
 2. Comprueba que Leaflet CSS y JS estén cargados
 3. Revisa la consola del navegador para errores
 4. Asegúrate de que los inputs tengan `id="lat"` e `id="lng"`
 
-### 🆕 Pin personalizado no aparece
+### 🎨 Pin personalizado no aparece
 
 ```bash
 # Verificar permisos
@@ -366,6 +416,18 @@ ls -la images/[viaje_id]/maps/
 chmod 755 images/[viaje_id]/maps/
 chmod 644 images/[viaje_id]/maps/pin.*
 ```
+
+### 🔊 Audio no funciona
+
+1. **Verifica el navegador**: Usa Chrome, Safari o Firefox
+2. **HTTPS**: Algunos navegadores requieren HTTPS para audio
+3. **Consola**: Revisa errores de JavaScript
+4. **Campo vacío**: El botón solo aparece si hay descripción auditiva
+
+**Errores comunes**:
+- `interrupted`: Normal al cambiar de audio (ignorado automáticamente)
+- `not-allowed`: El usuario debe interactuar primero con la página
+- `network`: Problemas de conexión
 
 ### Drag & Drop no funciona en móvil
 **Nota**: El drag & drop actual solo funciona con mouse. Para móviles se necesitaría implementar eventos touch adicionales.
@@ -377,7 +439,7 @@ chmod 644 images/[viaje_id]/maps/pin.*
 1. Accede al panel admin y haz login
 2. Clic en "+ Nuevo Viaje"
 3. Rellena información básica y sube una imagen de portada
-4. **🆕 (Opcional)** Sube un pin personalizado para los mapas
+4. **🎨 (Opcional)** Sube un pin personalizado para los mapas
 5. Elige una plantilla de colores o personaliza manualmente
 6. Guarda el viaje
 
@@ -385,7 +447,7 @@ chmod 644 images/[viaje_id]/maps/pin.*
 
 1. Desde el dashboard, clic en "Días" del viaje
 2. "+ Nuevo Día" y configura fecha, título
-3. **🆕 Usa el Location Picker**: Haz click en el mapa para definir el centro
+3. **🗺️ Usa el Location Picker**: Haz click en el mapa para definir el centro
 4. Define el zoom del mapa
 5. Opcionalmente crea secciones para organizar el día
 
@@ -394,8 +456,9 @@ chmod 644 images/[viaje_id]/maps/pin.*
 1. Entra en "Actividades" del día
 2. "+ Nueva Actividad"
 3. Selecciona icono, título, descripción
-4. **🆕 Usa el Location Picker**: Haz click en el mapa o arrastra el marcador
-5. Agrega detalles adicionales (horarios, precios)
+4. **🔊 (Opcional)** Añade descripción auditiva para lectura de voz
+5. **🗺️ Usa el Location Picker**: Haz click en el mapa o arrastra el marcador
+6. Agrega detalles adicionales (horarios, precios)
 
 ### Publicar el viaje
 
@@ -404,34 +467,45 @@ El viaje es accesible públicamente en:
 http://tu-dominio.com/?viaje=slug-del-viaje
 ```
 
-## 🆕 Novedades en v2.0
+## 🆕 Novedades en v2.1
 
 ### ✨ Características Nuevas
 
-#### 🗺️ Migración a Leaflet + OpenStreetMap
-- **Sin API key**: Elimina dependencia de Google Maps
-- **100% gratuito**: Sin límites de uso
-- **Más rápido**: Librería 62% más ligera
-- **Múltiples estilos**: 5+ estilos de mapa disponibles
-- **Mejor privacidad**: Sin tracking de terceros
+#### 🗺️ CartoDB Tiles
+- **Diseño minimalista**: Tiles limpios sin sobrecarga visual
+- **Mejor legibilidad**: Etiquetas claras y colores suaves
+- **Profesional**: Aspecto más pulido que OpenStreetMap estándar
+- **Opción global**: Configurable en Location Picker
 
-#### 📍 Location Picker Interactivo
-- **Selector visual**: Click en mapa para seleccionar ubicación
-- **Drag & drop**: Arrastra marcador para ajustar
-- **Sincronización**: Mapa ↔ Inputs bidireccional
-- **3 formularios**: Actividades, días y alojamientos
+#### 🔊 Sistema de Audio
+- **Web Speech API**: Síntesis de voz nativa del navegador
+- **Campo dedicado**: "Descripción Auditiva" en formulario de actividades
+- **Controles intuitivos**: Play/Pausa con un solo click
+- **Gestión inteligente**: Auto-reset al cambiar de audio
+- **Sin dependencias**: No requiere APIs externas ni configuración
 
-#### 🎨 Pines Personalizados
-- **Por viaje**: Cada viaje puede tener su pin único
-- **Formatos**: GIF (animado), PNG, WebP
-- **Fácil**: Sube desde el formulario de viaje
-- **Automático**: Se usa en todos los mapas del viaje
+#### 🎨 Mejoras Visuales
+- **Modal de iconos**: Ahora con `z-index` superior al mapa
+- **Orden de iconos**: Audio (izquierda) → Google Maps (derecha)
+- **FAB mejorado**: Botones invisibles no clicables cuando están ocultos
+- **Manejo de errores**: Errores de audio filtrados (`interrupted` ignorado)
 
-### 📚 Documentación Adicional
+### 📚 Migraciones
 
-- **IMPLEMENTACION_PIN_MAPA.md** - Guía de pines personalizados
-- **COMPARACION_MAPAS.md** - Comparativa Leaflet vs Google Maps
-- **GUIA_LOCATION_PICKER.md** - Implementación del selector de ubicación
+Para actualizar desde v2.0:
+
+```bash
+# Agregar campo de descripción auditiva
+mysql -u root -p gestor_viajes < agregar_descripcion_auditiva.sql
+```
+
+### 📁 Archivos Actualizados
+
+- ✅ `actividad_form.php` - Campo de descripción auditiva + CartoDB
+- ✅ `alojamiento_form.php` - CartoDB en mapa
+- ✅ `dia.php` - Sistema de audio + CartoDB + correcciones FAB
+- ✅ `location-picker.js` - Soporte para CartoDB tiles
+- ✅ `agregar_descripcion_auditiva.sql` - Migración de BD
 
 ## 🤝 Contribuciones
 
@@ -454,10 +528,12 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 ## 🙏 Agradecimientos
 
 - [Leaflet](https://leafletjs.com/) - Mapas interactivos sin API key
+- [CartoDB](https://carto.com/) - Tiles de mapa limpios y elegantes
 - [OpenStreetMap](https://www.openstreetmap.org/) - Datos cartográficos libres
 - [Material Symbols](https://fonts.google.com/icons) - Iconos
 - [TailwindCSS](https://tailwindcss.com/) - Framework CSS
 - [PHP](https://www.php.net/) - Lenguaje backend
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) - Síntesis de voz
 
 ## 📧 Contacto
 
@@ -467,18 +543,20 @@ Para preguntas o sugerencias:
 ## 🎯 Roadmap
 
 ### Próximas características:
-- [ ] Exportar itinerario a PDF
-- [ ] Compartir viaje mediante enlace
-- [ ] Modo offline para la app
-- [ ] Multi-idioma
-- [ ] Importar desde Google Maps
-- [ ] API REST para integración con apps móviles
-- [ ] Calculadora de presupuesto
-- [ ] Galería de fotos por día
+- [x] 🗺️ Tiles de CartoDB para diseño limpio
+- [x] 🔊 Descripciones de audio con síntesis de voz
+- [ ] 📤 Exportar itinerario a PDF mejorado
+- [ ] 🌐 Compartir viaje con QR code
+- [ ] 📱 Modo offline para la app
+- [ ] 🌍 Multi-idioma
+- [ ] 📥 Importar desde Google Maps/TripAdvisor
+- [ ] 🔌 API REST para integración con apps móviles
+- [ ] 💰 Calculadora de presupuesto
+- [ ] 📸 Galería de fotos por día
 
 ---
 
 ⭐ Si te gusta este proyecto, dale una estrella en GitHub!
 
-**Versión actual**: 2.0.0  
-**Última actualización**: Diciembre 2025
+**Versión actual**: 2.1.0  
+**Última actualización**: Febrero 2025
