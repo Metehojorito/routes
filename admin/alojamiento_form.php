@@ -207,12 +207,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	<script src="js/location-picker.js"></script>
 	
 	<script>
-	// Inicializar el selector de ubicación
+	// Inicializar el selector de ubicación con CartoDB
 	document.addEventListener('DOMContentLoaded', () => {
 		const picker = createLocationPicker('location-map', 'lat', 'lng', {
 			initialLat: 51.9190,
 			initialLng: 4.4887,
-			initialZoom: 14
+			initialZoom: 14,
+			useCartoDB: true  // Usar el mapa CartoDB más limpio
 		});
 	});
 	</script>

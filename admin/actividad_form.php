@@ -49,6 +49,7 @@ if ($id > 0) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titulo = trim($_POST['titulo']);
     $descripcion = trim($_POST['descripcion'] ?? '');
+    $descripcion_auditiva = trim($_POST['descripcion_auditiva'] ?? '');
     $icono = trim($_POST['icono']);
     $color_categoria = $_POST['color_categoria'];
     $seccion_id = !empty($_POST['seccion_id']) ? (int)$_POST['seccion_id'] : null;
@@ -64,19 +65,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($id > 0) {
 				$stmt = $db->prepare("
 					UPDATE actividades SET 
-						titulo = ?, descripcion = ?, icono = ?, color_categoria = ?,
+						titulo = ?, descripcion = ?, descripcion_auditiva = ?, icono = ?, color_categoria = ?,
 						seccion_id = ?, lat = ?, lng = ?, orden = ?, visible = ?
 					WHERE id = ?
 				");
-				$stmt->execute([$titulo, $descripcion, $icono, $color_categoria, 
+				$stmt->execute([$titulo, $descripcion, $descripcion_auditiva, $icono, $color_categoria, 
 							   $seccion_id, $lat, $lng, $orden, $visible, $id]);
             } else {
 				$stmt = $db->prepare("
 					INSERT INTO actividades 
-					(dia_id, titulo, descripcion, icono, color_categoria, seccion_id, lat, lng, orden, visible)
-					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+					(dia_id, titulo, descripcion, descripcion_auditiva, icono, color_categoria, seccion_id, lat, lng, orden, visible)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 				");
-				$stmt->execute([$dia_id, $titulo, $descripcion, $icono, $color_categoria,
+				$stmt->execute([$dia_id, $titulo, $descripcion, $descripcion_auditiva, $icono, $color_categoria,
 							   $seccion_id, $lat, $lng, $orden, $visible]);
                 $id = $db->lastInsertId();
             }
@@ -180,6 +181,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <textarea name="descripcion" rows="2"
                                       placeholder="Ej: Sevilla (SVQ) → Róterdam (RTM)"
                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo htmlspecialchars($actividad['descripcion'] ?? ''); ?></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                🔊 Descripción Auditiva (Opcional)
+                            </label>
+                            <textarea name="descripcion_auditiva" rows="3"
+                                      placeholder="Este texto será leído en voz alta en la parte pública cuando el usuario pulse el icono de audio. Ej: Salida a las 7 de la mañana desde el aeropuerto de Sevilla con destino a Róterdam..."
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo htmlspecialchars($actividad['descripcion_auditiva'] ?? ''); ?></textarea>
+                            <p class="mt-1 text-sm text-gray-500">
+                                💡 Si añades texto aquí, aparecerá un icono de audio junto al icono de ubicación en la vista pública. 
+                                Los usuarios podrán pulsar para escuchar esta descripción.
+                            </p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -338,7 +352,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <!-- Modal de Selector de Iconos -->
-    <div id="iconModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div id="iconModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
         <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-gray-900">Selecciona un icono</h3>
@@ -401,7 +415,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			const picker = createLocationPicker('location-map', 'lat', 'lng', {
 				initialLat: initialLat,
 				initialLng: initialLng,
-				initialZoom: 14
+				initialZoom: 14,
+				useCartoDB: true  // Usar el mapa CartoDB más limpio
 			});
         });
         

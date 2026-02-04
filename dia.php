@@ -124,6 +124,27 @@ if (!empty($viaje['pin_mapa'])) {
         color: #ffffff !important;
     }
 
+    /* Botón de audio - animaciones */
+    .audio-btn {
+        transition: all 0.3s ease;
+    }
+    .audio-btn:hover {
+        transform: scale(1.1);
+    }
+    .audio-btn.playing {
+        animation: pulse-audio 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-audio {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+    }
+
     /* ========================================== */
 	/* ESTILOS PARA IMPRESIÓN */
 	/* ========================================== */
@@ -137,6 +158,11 @@ if (!empty($viaje['pin_mapa'])) {
 		
 		/* Ocultar controles de navegación */
 		.sticky.top-0 {
+			display: none !important;
+		}
+		
+		/* Ocultar botones de audio */
+		.audio-btn {
 			display: none !important;
 		}
 		
@@ -335,12 +361,14 @@ if (!empty($viaje['pin_mapa'])) {
         transform: translateY(20px) scale(0.8);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
+        visibility: hidden;
     }
 
     .fab-action.visible {
         opacity: 1;
         transform: translateY(0) scale(1);
         pointer-events: auto;
+        visibility: visible;
     }
 
     .fab-action.delay-0 { transition-delay: 0ms; }
@@ -477,8 +505,13 @@ if (!empty($viaje['pin_mapa'])) {
                         <div class="space-y-3">
                             <?php foreach ($actividades_por_seccion[$seccion['id']] as $actividad): 
                                 $tiene_detalles = !empty($detalles_por_actividad[$actividad['id']]);
+                                $tiene_audio = !empty($actividad['descripcion_auditiva']);
                             ?>
-                            <div class="flex min-h-[72px] cursor-pointer <?php echo $tiene_detalles ? 'flex-col gap-3' : 'flex-col gap-4'; ?> rounded-lg bg-card-light p-3 shadow-sm dark:bg-card-dark item-daily" data-lat="<?php echo $actividad['lat']; ?>" data-lng="<?php echo $actividad['lng']; ?>" data-titulo="<?php echo htmlspecialchars($actividad['titulo']); ?>">
+                            <div class="flex min-h-[72px] cursor-pointer <?php echo $tiene_detalles ? 'flex-col gap-3' : 'flex-col gap-4'; ?> rounded-lg bg-card-light p-3 shadow-sm dark:bg-card-dark item-daily" 
+                                 data-lat="<?php echo $actividad['lat']; ?>" 
+                                 data-lng="<?php echo $actividad['lng']; ?>" 
+                                 data-titulo="<?php echo htmlspecialchars($actividad['titulo']); ?>"
+                                 data-actividad-id="<?php echo $actividad['id']; ?>">
                                 <div class="flex items-start gap-4 w-full">
                                     <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-<?php echo htmlspecialchars($actividad['color_categoria']); ?>/20 text-<?php echo htmlspecialchars($actividad['color_categoria']); ?>">
                                         <span class="material-symbols-outlined text-2xl"><?php echo htmlspecialchars($actividad['icono']); ?></span>
@@ -489,13 +522,24 @@ if (!empty($viaje['pin_mapa'])) {
                                         <p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary"><?php echo htmlspecialchars($actividad['descripcion']); ?></p>
                                         <?php endif; ?>
                                     </div>
-                                    <?php if ($actividad['lat'] && $actividad['lng']): ?>
-                                    <a href="https://www.google.com/maps/search/?api=1&query=<?php echo $actividad['lat']; ?>,<?php echo $actividad['lng']; ?>" 
-                                       target="_blank"
-                                       class="text-primary dark:text-primary hover:scale-110 transition-transform">
-                                        <span class="material-symbols-outlined">location_on</span>
-                                    </a>
-                                    <?php endif; ?>
+                                    <div class="flex items-center gap-2">
+                                        <?php if ($tiene_audio): ?>
+                                        <button class="audio-btn text-primary dark:text-primary" 
+                                                data-audio-text="<?php echo htmlspecialchars($actividad['descripcion_auditiva']); ?>"
+                                                data-actividad-id="<?php echo $actividad['id']; ?>"
+                                                title="Escuchar descripción">
+                                            <span class="material-symbols-outlined play-icon">volume_up</span>
+                                            <span class="material-symbols-outlined pause-icon hidden">pause</span>
+                                        </button>
+                                        <?php endif; ?>
+                                        <?php if ($actividad['lat'] && $actividad['lng']): ?>
+                                        <a href="https://www.google.com/maps/search/?api=1&query=<?php echo $actividad['lat']; ?>,<?php echo $actividad['lng']; ?>" 
+                                           target="_blank"
+                                           class="text-primary dark:text-primary hover:scale-110 transition-transform">
+                                            <span class="material-symbols-outlined">location_on</span>
+                                        </a>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                                 <?php if ($tiene_detalles): ?>
                                 <div class="ml-1 flex flex-col gap-2 border-l-2 border-dashed border-<?php echo htmlspecialchars($actividad['color_categoria']); ?>/30 pl-5">
@@ -520,8 +564,13 @@ if (!empty($viaje['pin_mapa'])) {
                 <div class="space-y-3 p-4 pt-2">
                     <?php foreach ($actividades as $actividad): 
                         $tiene_detalles = !empty($detalles_por_actividad[$actividad['id']]);
+                        $tiene_audio = !empty($actividad['descripcion_auditiva']);
                     ?>
-                    <div class="flex min-h-[72px] cursor-pointer <?php echo $tiene_detalles ? 'flex-col gap-3' : 'flex-col gap-4'; ?> rounded-lg bg-card-light p-3 shadow-sm dark:bg-card-dark item-daily" data-lat="<?php echo $actividad['lat']; ?>" data-lng="<?php echo $actividad['lng']; ?>" data-titulo="<?php echo htmlspecialchars($actividad['titulo']); ?>">
+                    <div class="flex min-h-[72px] cursor-pointer <?php echo $tiene_detalles ? 'flex-col gap-3' : 'flex-col gap-4'; ?> rounded-lg bg-card-light p-3 shadow-sm dark:bg-card-dark item-daily" 
+                         data-lat="<?php echo $actividad['lat']; ?>" 
+                         data-lng="<?php echo $actividad['lng']; ?>" 
+                         data-titulo="<?php echo htmlspecialchars($actividad['titulo']); ?>"
+                         data-actividad-id="<?php echo $actividad['id']; ?>">
                         <div class="flex items-start gap-4">
                             <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-<?php echo htmlspecialchars($actividad['color_categoria']); ?>/20 text-<?php echo htmlspecialchars($actividad['color_categoria']); ?>">
                                 <span class="material-symbols-outlined text-2xl"><?php echo htmlspecialchars($actividad['icono']); ?></span>
@@ -532,13 +581,24 @@ if (!empty($viaje['pin_mapa'])) {
                                 <p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary"><?php echo htmlspecialchars($actividad['descripcion']); ?></p>
                                 <?php endif; ?>
                             </div>
-                            <?php if ($actividad['lat'] && $actividad['lng']): ?>
-                            <a href="https://www.google.com/maps/search/?api=1&query=<?php echo $actividad['lat']; ?>,<?php echo $actividad['lng']; ?>" 
-                               target="_blank"
-                               class="text-primary dark:text-primary hover:scale-110 transition-transform">
-                                <span class="material-symbols-outlined">location_on</span>
-                            </a>
-                            <?php endif; ?>
+                            <div class="flex items-center gap-2">
+                                <?php if ($tiene_audio): ?>
+                                <button class="audio-btn text-primary dark:text-primary" 
+                                        data-audio-text="<?php echo htmlspecialchars($actividad['descripcion_auditiva']); ?>"
+                                        data-actividad-id="<?php echo $actividad['id']; ?>"
+                                        title="Escuchar descripción">
+                                    <span class="material-symbols-outlined play-icon">volume_up</span>
+                                    <span class="material-symbols-outlined pause-icon hidden">pause</span>
+                                </button>
+                                <?php endif; ?>
+                                <?php if ($actividad['lat'] && $actividad['lng']): ?>
+                                <a href="https://www.google.com/maps/search/?api=1&query=<?php echo $actividad['lat']; ?>,<?php echo $actividad['lng']; ?>" 
+                                   target="_blank"
+                                   class="text-primary dark:text-primary hover:scale-110 transition-transform">
+                                    <span class="material-symbols-outlined">location_on</span>
+                                </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         <?php if ($tiene_detalles): ?>
                         <div class="ml-1 flex flex-col gap-2 border-l-2 border-dashed border-<?php echo htmlspecialchars($actividad['color_categoria']); ?>/30 pl-5">
@@ -643,7 +703,111 @@ if (!empty($viaje['pin_mapa'])) {
     <?php endif; ?>
     
     // ==========================================
-    // MAPA CON LEAFLET
+    // SISTEMA DE AUDIO CON WEB SPEECH API
+    // ==========================================
+    let currentSpeech = null;
+    let currentButton = null;
+    
+    // Inicializar Speech Synthesis API
+    const synth = window.speechSynthesis;
+    
+    // Función para detener el audio actual de forma segura
+    function stopCurrentAudio() {
+        if (currentSpeech) {
+            // Remover listeners antes de cancelar para evitar que se dispare onerror
+            currentSpeech.onend = null;
+            currentSpeech.onerror = null;
+            synth.cancel();
+            
+            if (currentButton) {
+                resetButton(currentButton);
+            }
+            
+            currentSpeech = null;
+            currentButton = null;
+        }
+    }
+    
+    // Función para reproducir audio
+    function playAudio(button, text) {
+        // Si ya hay algo reproduciéndose, detenerlo de forma segura
+        stopCurrentAudio();
+        
+        // Crear nueva instancia de speech
+        currentSpeech = new SpeechSynthesisUtterance(text);
+        currentSpeech.lang = 'es-ES';
+        currentSpeech.rate = 0.9;
+        currentSpeech.pitch = 1;
+        
+        // Event listeners
+        currentSpeech.onstart = () => {
+            button.classList.add('playing');
+            button.querySelector('.play-icon').classList.add('hidden');
+            button.querySelector('.pause-icon').classList.remove('hidden');
+        };
+        
+        currentSpeech.onend = () => {
+            resetButton(button);
+            currentSpeech = null;
+            currentButton = null;
+        };
+        
+        currentSpeech.onerror = (e) => {
+            // Solo mostrar error si NO es por interrupción (que es normal)
+            if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                console.error('Error en síntesis de voz:', e);
+            }
+            resetButton(button);
+            currentSpeech = null;
+            currentButton = null;
+        };
+        
+        currentButton = button;
+        synth.speak(currentSpeech);
+    }
+    
+    // Función para pausar audio
+    function pauseAudio(button) {
+        if (synth.speaking && !synth.paused) {
+            synth.pause();
+            button.classList.remove('playing');
+            button.querySelector('.play-icon').classList.remove('hidden');
+            button.querySelector('.pause-icon').classList.add('hidden');
+        } else if (synth.paused) {
+            synth.resume();
+            button.classList.add('playing');
+            button.querySelector('.play-icon').classList.add('hidden');
+            button.querySelector('.pause-icon').classList.remove('hidden');
+        }
+    }
+    
+    // Función para resetear botón
+    function resetButton(button) {
+        button.classList.remove('playing');
+        button.querySelector('.play-icon').classList.remove('hidden');
+        button.querySelector('.pause-icon').classList.add('hidden');
+    }
+    
+    // Configurar event listeners en botones de audio
+    document.querySelectorAll('.audio-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar que se active el click del card
+            
+            const text = button.dataset.audioText;
+            const actividadId = button.dataset.actividadId;
+            
+            // Si este botón es el que está reproduciendo, pausar/reanudar
+            if (currentButton === button && currentSpeech) {
+                pauseAudio(button);
+            } else {
+                // Reproducir nuevo audio
+                playAudio(button, text);
+            }
+        });
+    });
+    
+    // ==========================================
+    // MAPA CON LEAFLET (CartoDB Tiles)
     // ==========================================
     let map, markers = {};
     
@@ -660,9 +824,11 @@ if (!empty($viaje['pin_mapa'])) {
         doubleClickZoom: true
     });
     
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19
+    // Usar tiles de CartoDB para un diseño más limpio
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
     }).addTo(map);
     
     const customIcon = L.icon({
@@ -685,7 +851,12 @@ if (!empty($viaje['pin_mapa'])) {
             
             markers[index] = marker;
             
-            div.addEventListener("click", () => {
+            div.addEventListener("click", (e) => {
+                // No hacer zoom si se hizo click en botones de audio o ubicación
+                if (e.target.closest('.audio-btn') || e.target.closest('a[href*="google.com/maps"]')) {
+                    return;
+                }
+                
                 map.closePopup();
                 map.flyTo([lat, lng], 16, {
                     duration: 0.8,
@@ -750,12 +921,6 @@ if (!empty($viaje['pin_mapa'])) {
         setTimeout(() => {
             toast.classList.remove('show');
         }, 3000);
-    }
-
-    // Cerrar menú después de cada acción
-    function closeMenu() {
-        isMenuOpen = false;
-        fabContainer.classList.remove('open');
     }
     
     // ==========================================
@@ -925,6 +1090,9 @@ if (!empty($viaje['pin_mapa'])) {
     // ==========================================
     document.getElementById('btnPrint').addEventListener('click', (e) => {
 		e.stopPropagation();
+		
+		// Detener cualquier audio que esté reproduciéndose
+		stopCurrentAudio();
 		
 		// Cerrar cualquier popup del mapa antes de imprimir
 		map.closePopup();

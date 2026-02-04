@@ -253,7 +253,8 @@ if (isset($_GET['success'])) $success = "Día creado correctamente";
 		const picker = createLocationPicker('location-map', 'centro_mapa_lat', 'centro_mapa_lng', {
 			initialLat: 51.8143,
 			initialLng: 4.6650,
-			initialZoom: 13
+			initialZoom: 13,
+			useCartoDB: true
 		});
 	});
 	</script>
