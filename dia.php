@@ -732,8 +732,15 @@ if (!empty($viaje['pin_mapa'])) {
     let isPlaying = false;
     let isPaused = false;
     
+    // Variables para simular pause/resume en móviles
+    let pausedAtChar = 0;
+    let totalChars = 0;
+    
     // Inicializar Speech Synthesis API
     const synth = window.speechSynthesis;
+    
+    // Detectar si estamos en móvil
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
     // IMPORTANTE: En móviles, necesitamos inicializar el synth con interacción del usuario
     let synthInitialized = false;
@@ -758,6 +765,7 @@ if (!empty($viaje['pin_mapa'])) {
             currentSpeech.onerror = null;
             currentSpeech.onpause = null;
             currentSpeech.onresume = null;
+            currentSpeech.onboundary = null;
             
             synth.cancel();
             
@@ -770,28 +778,51 @@ if (!empty($viaje['pin_mapa'])) {
             currentText = '';
             isPlaying = false;
             isPaused = false;
+            pausedAtChar = 0;
+            totalChars = 0;
         }
     }
     
     // Función para reproducir audio
-    function playAudio(button, text) {
+    function playAudio(button, text, startFromChar = 0) {
         // Inicializar synth si es necesario (móviles)
         initSynth();
         
-        // Si ya hay algo reproduciéndose, detenerlo
-        stopCurrentAudio();
+        // Si hay un audio diferente reproduciéndose, detenerlo
+        if (currentButton !== button) {
+            stopCurrentAudio();
+        }
         
         // Guardar el texto actual
         currentText = text;
+        totalChars = text.length;
+        
+        // Si debemos empezar desde un punto específico (resume)
+        let textToSpeak = text;
+        if (startFromChar > 0) {
+            // Calcular aproximadamente desde dónde reanudar (por palabras)
+            const progress = startFromChar / totalChars;
+            const words = text.split(' ');
+            const wordIndex = Math.floor(words.length * progress);
+            textToSpeak = words.slice(wordIndex).join(' ');
+            console.log(`Reanudando desde palabra ${wordIndex} de ${words.length}`);
+        }
         
         // Pequeño delay para asegurar que synth está listo (crítico en móviles)
         setTimeout(() => {
             // Crear nueva instancia
-            currentSpeech = new SpeechSynthesisUtterance(text);
+            currentSpeech = new SpeechSynthesisUtterance(textToSpeak);
             currentSpeech.lang = 'es-ES';
             currentSpeech.rate = 0.9;
             currentSpeech.pitch = 1;
             currentSpeech.volume = 1;
+            
+            // Rastrear el progreso (para móviles)
+            currentSpeech.onboundary = (event) => {
+                if (event.name === 'word') {
+                    pausedAtChar = event.charIndex + (startFromChar > 0 ? startFromChar : 0);
+                }
+            };
             
             // Event listeners
             currentSpeech.onstart = () => {
@@ -811,6 +842,8 @@ if (!empty($viaje['pin_mapa'])) {
                 currentText = '';
                 isPlaying = false;
                 isPaused = false;
+                pausedAtChar = 0;
+                totalChars = 0;
             };
             
             currentSpeech.onerror = (e) => {
@@ -824,6 +857,8 @@ if (!empty($viaje['pin_mapa'])) {
                 currentText = '';
                 isPlaying = false;
                 isPaused = false;
+                pausedAtChar = 0;
+                totalChars = 0;
             };
             
             currentButton = button;
@@ -839,17 +874,28 @@ if (!empty($viaje['pin_mapa'])) {
         }, 50); // Pequeño delay para móviles
     }
     
-    // Función para pausar audio (en móviles, detener completamente)
+    // Función para pausar audio
     function pauseAudio(button) {
         console.log('Pausando audio');
         isPaused = true;
         isPlaying = false;
         
-        // En móviles, pause/resume no funciona bien, así que mejor detener
-        stopCurrentAudio();
+        // En desktop, intentar usar pause nativo
+        if (!isMobile && synth.speaking) {
+            try {
+                synth.pause();
+                console.log('Usando pause nativo');
+            } catch (e) {
+                console.log('Pause nativo falló, usando cancel:', e);
+                synth.cancel();
+            }
+        } else {
+            // En móviles, cancelar (ya tenemos el progreso guardado)
+            synth.cancel();
+        }
         
-        // Mantener referencia al botón para poder reanudar
-        currentButton = button;
+        // Mantener referencia al botón y al texto para poder reanudar
+        // Ya están guardados en currentButton y currentText
         
         // Actualizar UI
         button.classList.remove('playing');
@@ -857,13 +903,32 @@ if (!empty($viaje['pin_mapa'])) {
         button.querySelector('.pause-icon').classList.add('hidden');
     }
     
-    // Función para reanudar audio (en móviles, reproducir de nuevo)
+    // Función para reanudar audio
     function resumeAudio(button, text) {
         console.log('Reanudando audio');
         isPaused = false;
         
-        // En móviles, reproducir de nuevo desde el inicio
-        playAudio(button, text);
+        // En desktop, intentar resume nativo
+        if (!isMobile && synth.paused) {
+            try {
+                synth.resume();
+                isPlaying = true;
+                button.classList.add('playing');
+                button.querySelector('.play-icon').classList.add('hidden');
+                button.querySelector('.pause-icon').classList.remove('hidden');
+                console.log('Usando resume nativo');
+                return;
+            } catch (e) {
+                console.log('Resume nativo falló, reproduciendo desde progreso:', e);
+            }
+        }
+        
+        // En móviles o si falla el resume, reproducir desde donde se quedó
+        if (pausedAtChar > 0) {
+            playAudio(button, text, pausedAtChar);
+        } else {
+            playAudio(button, text);
+        }
     }
     
     // Función para resetear botón
@@ -893,7 +958,7 @@ if (!empty($viaje['pin_mapa'])) {
                     // Está reproduciéndose -> pausar
                     console.log('Pausar audio actual');
                     pauseAudio(button);
-                } else if (isPaused) {
+                } else if (isPaused || (!isPlaying && currentText === text)) {
                     // Está pausado -> reanudar
                     console.log('Reanudar audio');
                     resumeAudio(button, text);
