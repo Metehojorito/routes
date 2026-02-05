@@ -689,6 +689,9 @@ if (!empty($viaje['pin_mapa'])) {
     // NAVEGACIÓN ENTRE DÍAS
     // ==========================================
     document.getElementById("btnBack").addEventListener("click", () => {
+        // Detener audio antes de navegar
+        stopCurrentAudio();
+        
         <?php if ($dia_anterior): ?>
         window.location.href = "dia.php?dia=<?php echo $dia_anterior['numero_dia']; ?>";
         <?php else: ?>
@@ -698,25 +701,64 @@ if (!empty($viaje['pin_mapa'])) {
     
     <?php if ($dia_siguiente): ?>
     document.getElementById("btnNext").addEventListener("click", () => {
+        // Detener audio antes de navegar
+        stopCurrentAudio();
+        
         window.location.href = "dia.php?dia=<?php echo $dia_siguiente['numero_dia']; ?>";
     });
     <?php endif; ?>
+    
+    // Detener audio también al hacer click en el título (ir al menú)
+    document.querySelector('h1 a').addEventListener('click', () => {
+        stopCurrentAudio();
+    });
+    
+    // Detener audio al cerrar la pestaña o navegar atrás
+    window.addEventListener('beforeunload', () => {
+        stopCurrentAudio();
+    });
+    
+    // Detener audio al usar el botón atrás del navegador
+    window.addEventListener('pagehide', () => {
+        stopCurrentAudio();
+    });
     
     // ==========================================
     // SISTEMA DE AUDIO CON WEB SPEECH API
     // ==========================================
     let currentSpeech = null;
     let currentButton = null;
+    let currentText = '';
+    let isPlaying = false;
+    let isPaused = false;
     
     // Inicializar Speech Synthesis API
     const synth = window.speechSynthesis;
     
+    // IMPORTANTE: En móviles, necesitamos inicializar el synth con interacción del usuario
+    let synthInitialized = false;
+    
+    // Función para inicializar synth (necesario en móviles)
+    function initSynth() {
+        if (!synthInitialized) {
+            // Crear y cancelar un utterance vacío para "despertar" el synth
+            const dummy = new SpeechSynthesisUtterance('');
+            synth.speak(dummy);
+            synth.cancel();
+            synthInitialized = true;
+        }
+    }
+    
     // Función para detener el audio actual de forma segura
     function stopCurrentAudio() {
         if (currentSpeech) {
-            // Remover listeners antes de cancelar para evitar que se dispare onerror
+            // Remover listeners antes de cancelar
+            currentSpeech.onstart = null;
             currentSpeech.onend = null;
             currentSpeech.onerror = null;
+            currentSpeech.onpause = null;
+            currentSpeech.onresume = null;
+            
             synth.cancel();
             
             if (currentButton) {
@@ -725,60 +767,103 @@ if (!empty($viaje['pin_mapa'])) {
             
             currentSpeech = null;
             currentButton = null;
+            currentText = '';
+            isPlaying = false;
+            isPaused = false;
         }
     }
     
     // Función para reproducir audio
     function playAudio(button, text) {
-        // Si ya hay algo reproduciéndose, detenerlo de forma segura
+        // Inicializar synth si es necesario (móviles)
+        initSynth();
+        
+        // Si ya hay algo reproduciéndose, detenerlo
         stopCurrentAudio();
         
-        // Crear nueva instancia de speech
-        currentSpeech = new SpeechSynthesisUtterance(text);
-        currentSpeech.lang = 'es-ES';
-        currentSpeech.rate = 0.9;
-        currentSpeech.pitch = 1;
+        // Guardar el texto actual
+        currentText = text;
         
-        // Event listeners
-        currentSpeech.onstart = () => {
-            button.classList.add('playing');
-            button.querySelector('.play-icon').classList.add('hidden');
-            button.querySelector('.pause-icon').classList.remove('hidden');
-        };
-        
-        currentSpeech.onend = () => {
-            resetButton(button);
-            currentSpeech = null;
-            currentButton = null;
-        };
-        
-        currentSpeech.onerror = (e) => {
-            // Solo mostrar error si NO es por interrupción (que es normal)
-            if (e.error !== 'interrupted' && e.error !== 'canceled') {
-                console.error('Error en síntesis de voz:', e);
+        // Pequeño delay para asegurar que synth está listo (crítico en móviles)
+        setTimeout(() => {
+            // Crear nueva instancia
+            currentSpeech = new SpeechSynthesisUtterance(text);
+            currentSpeech.lang = 'es-ES';
+            currentSpeech.rate = 0.9;
+            currentSpeech.pitch = 1;
+            currentSpeech.volume = 1;
+            
+            // Event listeners
+            currentSpeech.onstart = () => {
+                console.log('Audio iniciado');
+                isPlaying = true;
+                isPaused = false;
+                button.classList.add('playing');
+                button.querySelector('.play-icon').classList.add('hidden');
+                button.querySelector('.pause-icon').classList.remove('hidden');
+            };
+            
+            currentSpeech.onend = () => {
+                console.log('Audio finalizado');
+                resetButton(button);
+                currentSpeech = null;
+                currentButton = null;
+                currentText = '';
+                isPlaying = false;
+                isPaused = false;
+            };
+            
+            currentSpeech.onerror = (e) => {
+                // Solo mostrar error si NO es por interrupción
+                if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                    console.error('Error en síntesis de voz:', e.error, e);
+                }
+                resetButton(button);
+                currentSpeech = null;
+                currentButton = null;
+                currentText = '';
+                isPlaying = false;
+                isPaused = false;
+            };
+            
+            currentButton = button;
+            
+            // Reproducir - CRÍTICO: debe ser síncrono con el click del usuario
+            try {
+                synth.speak(currentSpeech);
+                console.log('synth.speak() llamado');
+            } catch (error) {
+                console.error('Error al llamar synth.speak():', error);
+                resetButton(button);
             }
-            resetButton(button);
-            currentSpeech = null;
-            currentButton = null;
-        };
-        
-        currentButton = button;
-        synth.speak(currentSpeech);
+        }, 50); // Pequeño delay para móviles
     }
     
-    // Función para pausar audio
+    // Función para pausar audio (en móviles, detener completamente)
     function pauseAudio(button) {
-        if (synth.speaking && !synth.paused) {
-            synth.pause();
-            button.classList.remove('playing');
-            button.querySelector('.play-icon').classList.remove('hidden');
-            button.querySelector('.pause-icon').classList.add('hidden');
-        } else if (synth.paused) {
-            synth.resume();
-            button.classList.add('playing');
-            button.querySelector('.play-icon').classList.add('hidden');
-            button.querySelector('.pause-icon').classList.remove('hidden');
-        }
+        console.log('Pausando audio');
+        isPaused = true;
+        isPlaying = false;
+        
+        // En móviles, pause/resume no funciona bien, así que mejor detener
+        stopCurrentAudio();
+        
+        // Mantener referencia al botón para poder reanudar
+        currentButton = button;
+        
+        // Actualizar UI
+        button.classList.remove('playing');
+        button.querySelector('.play-icon').classList.remove('hidden');
+        button.querySelector('.pause-icon').classList.add('hidden');
+    }
+    
+    // Función para reanudar audio (en móviles, reproducir de nuevo)
+    function resumeAudio(button, text) {
+        console.log('Reanudando audio');
+        isPaused = false;
+        
+        // En móviles, reproducir de nuevo desde el inicio
+        playAudio(button, text);
     }
     
     // Función para resetear botón
@@ -790,20 +875,39 @@ if (!empty($viaje['pin_mapa'])) {
     
     // Configurar event listeners en botones de audio
     document.querySelectorAll('.audio-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
+        // Usar 'touchstart' en móviles para mejor respuesta
+        const eventType = 'ontouchstart' in window ? 'touchstart' : 'click';
+        
+        button.addEventListener(eventType, (e) => {
+            e.preventDefault(); // Evitar doble disparo en móviles
             e.stopPropagation(); // Evitar que se active el click del card
+            
+            console.log('Botón de audio pulsado');
             
             const text = button.dataset.audioText;
             const actividadId = button.dataset.actividadId;
             
-            // Si este botón es el que está reproduciendo, pausar/reanudar
-            if (currentButton === button && currentSpeech) {
-                pauseAudio(button);
+            // Si este botón es el que está activo
+            if (currentButton === button) {
+                if (isPlaying) {
+                    // Está reproduciéndose -> pausar
+                    console.log('Pausar audio actual');
+                    pauseAudio(button);
+                } else if (isPaused) {
+                    // Está pausado -> reanudar
+                    console.log('Reanudar audio');
+                    resumeAudio(button, text);
+                } else {
+                    // No está reproduciendo -> reproducir
+                    console.log('Reproducir audio');
+                    playAudio(button, text);
+                }
             } else {
-                // Reproducir nuevo audio
+                // Es un botón diferente -> reproducir nuevo audio
+                console.log('Nuevo audio - reproducir');
                 playAudio(button, text);
             }
-        });
+        }, { passive: false });
     });
     
     // ==========================================
@@ -851,20 +955,70 @@ if (!empty($viaje['pin_mapa'])) {
             
             markers[index] = marker;
             
-            div.addEventListener("click", (e) => {
-                // No hacer zoom si se hizo click en botones de audio o ubicación
-                if (e.target.closest('.audio-btn') || e.target.closest('a[href*="google.com/maps"]')) {
-                    return;
-                }
+            // Variables para detectar drag vs click en móviles
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchStartTime = 0;
+            let isTouchMove = false;
+            
+            // Detectar inicio de touch
+            div.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+                isTouchMove = false;
+            }, { passive: true });
+            
+            // Detectar movimiento (drag)
+            div.addEventListener('touchmove', (e) => {
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+                const deltaX = Math.abs(touchX - touchStartX);
+                const deltaY = Math.abs(touchY - touchStartY);
                 
-                map.closePopup();
-                map.flyTo([lat, lng], 16, {
-                    duration: 0.8,
-                    easeLinearity: 0.25
-                });
-                setTimeout(() => {
-                    marker.openPopup();
-                }, 500);
+                // Si se movió más de 10px, es un drag
+                if (deltaX > 10 || deltaY > 10) {
+                    isTouchMove = true;
+                }
+            }, { passive: true });
+            
+            // Detectar fin de touch (click o drag)
+            div.addEventListener('touchend', (e) => {
+                const touchDuration = Date.now() - touchStartTime;
+                
+                // Solo activar si:
+                // 1. No fue un drag (movimiento)
+                // 2. Duró menos de 500ms (no fue un long press)
+                // 3. No se hizo click en botones
+                if (!isTouchMove && touchDuration < 500) {
+                    if (!e.target.closest('.audio-btn') && !e.target.closest('a[href*="google.com/maps"]')) {
+                        map.closePopup();
+                        map.flyTo([lat, lng], 16, {
+                            duration: 0.8,
+                            easeLinearity: 0.25
+                        });
+                        setTimeout(() => {
+                            marker.openPopup();
+                        }, 500);
+                    }
+                }
+            }, { passive: true });
+            
+            // Para desktop, usar click normal
+            div.addEventListener("click", (e) => {
+                // Solo en desktop (si no hay soporte táctil)
+                if (!('ontouchstart' in window)) {
+                    if (!e.target.closest('.audio-btn') && !e.target.closest('a[href*="google.com/maps"]')) {
+                        map.closePopup();
+                        map.flyTo([lat, lng], 16, {
+                            duration: 0.8,
+                            easeLinearity: 0.25
+                        });
+                        setTimeout(() => {
+                            marker.openPopup();
+                        }, 500);
+                    }
+                }
             });
         }
     });
