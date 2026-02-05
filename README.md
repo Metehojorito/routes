@@ -559,4 +559,4 @@ Para preguntas o sugerencias:
 ⭐ Si te gusta este proyecto, dale una estrella en GitHub!
 
 **Versión actual**: 2.1.0  
-**Última actualización**: Febrero 2025
+**Última actualización**: Febrero 2026
